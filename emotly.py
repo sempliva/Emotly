@@ -3,10 +3,18 @@ Emotly
 
 DEED
 """
+import os
 from flask import Flask, request, render_template
 from werkzeug.contrib.fixers import ProxyFix
+from flask.ext.mongoengine import MongoEngine
 
 app = Flask(__name__)
+app.config["MONGODB_SETTINGS"] = {
+    'host': os.environ['EMOTLY_DB_URI'],
+    'username' : os.environ['EMOTLY_DB_USERNAME'],
+    'password' : os.environ['EMOTLY_DB_PASSWORD']
+}
+db = MongoEngine(app)
 
 @app.route("/")
 def index():
