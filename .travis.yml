@@ -4,7 +4,15 @@
 language: python
 python:
   - "3.5"
+
 # Install all the dependencies.
 install: "pip install -r requirements.txt"
+
 # Run tests.
 script: "python emotly_tests.py"
+
+# Deploy.
+deploy:
+  provider: heroku
+  api_key: GEQcjxJst9zGn8uqVitWJG/fsF/S7Zj57ATlUIRzulHLo8VTKU1b972DQwrvO6laQD4ze0ryyXm7xuyAOlTldSnFD5BsxgCKpP8r
+  app: emotly
