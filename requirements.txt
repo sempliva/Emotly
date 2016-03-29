@@ -3,4 +3,6 @@ itsdangerous==0.24
 Jinja2==2.8
 MarkupSafe==0.23
 Werkzeug==0.11.5
+flask-mongoengine==0.7.5
+bcrypt
 gunicorn
