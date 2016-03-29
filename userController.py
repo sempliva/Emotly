@@ -21,3 +21,5 @@ def signUp():
         salt = salt,
         email = email
     )
+    #TODO: check if nickname exist
+    user.save()
