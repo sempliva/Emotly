@@ -23,5 +23,9 @@ class BasicEmotlyTestCase(unittest.TestCase):
         rv = self.app.get('/')
         assert rv.data == b'Ok'
 
+    def test_emotly_echo(self):
+        rv = self.app.get('/echo/hello')
+        assert rv.data == b'Hello hello'
+
 if __name__ == '__main__':
     unittest.main()
