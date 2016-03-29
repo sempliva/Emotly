@@ -12,6 +12,10 @@ app = Flask(__name__)
 def index():
     return "Ok"
 
+@app.route("/echo/<echostr>")
+def echo(echostr):
+    return "Hello %s" % echostr
+
 # Gunicorn
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
