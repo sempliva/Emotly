@@ -4,7 +4,7 @@ Emotly
 DEED
 """
 import os
-from flask import Flask, request, render_templatei, abort
+from flask import Flask, request, render_template, abort
 from werkzeug.contrib.fixers import ProxyFix
 from flask.ext.mongoengine import MongoEngine
 import bcrypt
@@ -35,18 +35,20 @@ def index():
 def signup():
     if request.method == "GET":
         return render_template("page-signup.html")
-    # TODO: Deal with the actual registration here?
+    if request.method == "POST":
+        return registerUser(request)
+
     return "Unsupported"
 
-@app.route('/singup', methods=['POST'])
-def signUp():
+# @app.route('/register', methods=['POST'])
+def registerUser(request):
 
     try:
-        nickname = request.form['username']
-        pwd = request.form['pwd'].encode('utf-8')
-        email = request.form['email']
+        nickname = request.form['inputNickname']
+        pwd = request.form['inputPassword'].encode('utf-8')
+        email = request.form['inputEmail']
     except:
-        abort(401)
+        return "Bad parameters"
 
     if len(User.objects.filter(email=email))>0:
         return 'user already exist'
@@ -59,8 +61,12 @@ def signUp():
         salt=salt,
         email=email
     )
-    user.save()
-    return 'OK'
+    try:
+        user.save()
+    except:
+        return "Bad parameters"
+    return render_template("page-signedup.html")
+
 # Gunicorn
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
