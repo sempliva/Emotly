@@ -4,7 +4,7 @@ Emotly
 DEED
 """
 import os
-from flask import Flask, request, abort
+from flask import Flask, request, render_templatei, abort
 from werkzeug.contrib.fixers import ProxyFix
 from flask.ext.mongoengine import MongoEngine
 import bcrypt
@@ -29,11 +29,14 @@ class User(db.Document):
 
 @app.route("/")
 def index():
-    return "Ok"
+    return render_template("page-home.html")
 
-@app.route("/echo/<echostr>")
-def echo(echostr):
-    return "Hello %s" % echostr
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "GET":
+        return render_template("page-signup.html")
+    # TODO: Deal with the actual registration here?
+    return "Unsupported"
 
 @app.route('/singup', methods=['POST'])
 def signUp():

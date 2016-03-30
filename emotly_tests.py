@@ -6,8 +6,8 @@ KISS: Keep It Stupid Simple
 """
 import unittest, emotly
 
-# Empty test case.
-class BasicEmotlyTestCase(unittest.TestCase):
+# Simple page existance tests.
+class BasicEmotlyPageCase(unittest.TestCase):
 
     # Runs the test client.
     def setUp(self):
@@ -21,11 +21,23 @@ class BasicEmotlyTestCase(unittest.TestCase):
 
     def test_emotly_index(self):
         rv = self.app.get('/')
-        assert rv.data == b'Ok'
+        assert b'Your life, your emotions' in rv.data
 
-    def test_emotly_echo(self):
-        rv = self.app.get('/echo/hello')
-        assert rv.data == b'Hello hello'
+    def test_emotly_signup(self):
+        rv = self.app.get('/signup')
+        assert b'Signup' in rv.data
+
+# TODO: User Registration tests.
+#class EmotlyUserRegistrationTestCase(unittest.TestCase):
+#    def setUp(self):
+#        self.app = emotly.app.test_client()
+#
+#    def tearDown(self):
+#        pass
+#
+#    def test_dummy(self):
+#        assert True
+#
 
 if __name__ == '__main__':
     unittest.main()
