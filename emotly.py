@@ -3,18 +3,21 @@ Emotly
 
 DEED
 """
-from flask import Flask, request
+from flask import Flask, request, render_template
 from werkzeug.contrib.fixers import ProxyFix
 
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return "Ok"
+    return render_template("page-home.html")
 
-@app.route("/echo/<echostr>")
-def echo(echostr):
-    return "Hello %s" % echostr
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "GET":
+        return render_template("page-signup.html")
+    # TODO: Deal with the actual registration here?
+    return "Unsupported"
 
 # Gunicorn
 app.wsgi_app = ProxyFix(app.wsgi_app)
