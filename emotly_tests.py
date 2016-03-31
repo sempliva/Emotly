@@ -5,7 +5,7 @@ Consider adding separate TestCase instance for different features.
 KISS: Keep It Stupid Simple
 """
 import unittest, emotly
-from models import User
+from emotly import User
 from mongoengine import ValidationError, NotUniqueError
 
 # Simple page existance tests.
