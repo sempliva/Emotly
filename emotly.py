@@ -4,7 +4,8 @@ Emotly
 DEED
 """
 import os
-from flask import Flask, request, render_template, abort
+from flask import Flask, request, render_template, \
+    abort, flash, redirect, url_for
 from werkzeug.contrib.fixers import ProxyFix
 from flask.ext.mongoengine import MongoEngine
 import bcrypt
@@ -12,6 +13,8 @@ import bcrypt
 
 app = Flask(__name__)
 app.config["MONGODB_SETTINGS"] = {'DB': os.environ['EMOTLY_DB_NAME']}
+app.secret_key = 'super secret key'
+app.config['SESSION_TYPE'] = 'filesystem'
 db = MongoEngine(app)
 
 ########MODELS##########
@@ -48,10 +51,13 @@ def registerUser(request):
         pwd = request.form['inputPassword'].encode('utf-8')
         email = request.form['inputEmail']
     except:
-        return "Bad parameters"
+        flash("Bad request")
+        return redirect(url_for('signup'))
+
 
     if len(User.objects.filter(email=email))>0:
-        return 'user already exist'
+        flash('User already exist')
+        return redirect(url_for('signup'))
 
     salt = bcrypt.gensalt()
     hash = bcrypt.hashpw(pwd, salt)
@@ -64,8 +70,11 @@ def registerUser(request):
     try:
         user.save()
     except:
-        return "Bad parameters"
-    return render_template("page-signedup.html")
+        flash('Bad parameters')
+        return redirect(url_for('signup'))
+
+    flash('Registration completed! Ceck your email :)')
+    return redirect(url_for("index"))
 
 # Gunicorn
 app.wsgi_app = ProxyFix(app.wsgi_app)
