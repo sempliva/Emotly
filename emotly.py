@@ -4,28 +4,31 @@ Emotly
 DEED
 """
 import os
+import bcrypt
 from flask import Flask, request, render_template, \
     abort, flash, redirect, url_for
 from werkzeug.contrib.fixers import ProxyFix
 from flask.ext.mongoengine import MongoEngine
-import bcrypt
-
 
 app = Flask(__name__)
-app.config["MONGODB_SETTINGS"] = {'DB': os.environ['EMOTLY_DB_NAME']}
+app.config["MONGODB_SETTINGS"] = {
+    'host': os.environ['EMOTLY_DB_URI'],
+    'username' : os.environ['EMOTLY_DB_USERNAME'],
+    'password' : os.environ['EMOTLY_DB_PASSWORD']
+}
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
+
 db = MongoEngine(app)
 
 ########MODELS##########
 
 
 class User(db.Document):
-    nickname = db.StringField(min_length=6)
+    nickname = db.StringField(min_length=6, unique = True)
     email = db.EmailField(required = True, unique = True)
     password = db.StringField(required = True)
     salt = db.StringField(required = True)
-
 
 #######ROUTE###########
 

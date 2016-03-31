@@ -42,6 +42,13 @@ $ gunicorn emotly:app
 ```
 Nothing else to do, unless contributing your juicy grey matter.
 
+## Running Tests
+
+When running test class locally evironment variable "EMOTLY_DB_NAME" must be overridden. Local test db should be deleted manually after tests.
+```
+EMOTLY_DB_URI="xxx" EMOTLY_DB_USERNAME="xxx" EMOTLY_DB_PASSWORD="xxx" python emotly_tests.py
+```
+
 ## Contributing
 
 TODO
