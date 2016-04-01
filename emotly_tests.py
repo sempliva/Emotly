@@ -29,7 +29,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
         rv = self.app.get('/signup')
         assert b'Signup' in rv.data
 
-# TODO: User Registration tests.
+# Controller: User Registration
 class EmotlyUserRegistrationTestCase(unittest.TestCase):
     def setUp(self):
         self.app = emotly.app.test_client()
@@ -61,7 +61,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                       ),
                          follow_redirects=True
                     )
-            assert b'Bad request' in rv.data
+            assert b'Registration error' in rv.data
 
     def test_signup_short_nickname(self):
             rv=self.app.post('/signup',
@@ -72,7 +72,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                       ),
                          follow_redirects=True
                     )
-            assert b'Bad parameter' in rv.data
+            assert b'Registration error' in rv.data
 
     def test_signup_user_exist(self):
             rv=self.app.post('/signup',
@@ -92,15 +92,22 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                          follow_redirects=True
                     )
 
-            assert b'User already exist' in rv.data
+            assert b'duplicate unique keys' in rv.data
+
+class EmotlyUserModelTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = emotly.app.test_client()
+
+    def tearDown(self):
+        User.objects.delete()
 
     # Tests for User model
     def test_create_user(self):
-        u = User(nickname='test12345', email='test@example.com', password="abc", salt="salt")
+        u = User(nickname='test12345', email='test@example.com', password="FakeUserPassword123", salt="salt")
         self.assertTrue(u.save())
 
     def test_cannot_create_user_nickname_too_short(self):
-        u = User(nickname='test', email='test@example.com', password="abc", salt="salt")
+        u = User(nickname='test', email='test@example.com', password="FakeUserPassword123", salt="salt")
         with self.assertRaises(ValidationError):
             u.save()
 
@@ -110,24 +117,24 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
             u.save()
 
     def test_cannot_create_user_whitout_salt(self):
-        u = User(nickname='test', email='test@example.com', password="abc")
+        u = User(nickname='test', email='test@example.com', password="FakeUserPassword123")
         with self.assertRaises(ValidationError):
             u.save()
 
     def test_cannot_create_user_whitout_email(self):
-        u = User(nickname='test', password="abc", salt="salt")
+        u = User(nickname='test', password="FakeUserPassword123", salt="salt")
         with self.assertRaises(ValidationError):
             u.save()
 
     def test_cannot_create_user_email_duplicate_key(self):
-        u = User(nickname='test_user', email='test_duplicate@example.com', password="abc", salt="salt")
-        u2 = User(nickname='test_user_2', email='test_duplicate@example.com', password="abc", salt="salt")
+        u = User(nickname='test_user', email='test_duplicate@example.com', password="FakeUserPassword123", salt="salt")
+        u2 = User(nickname='test_user_2', email='test_duplicate@example.com', password="FakeUserPassword123", salt="salt")
         u.save()
         self.assertRaises(NotUniqueError, u2.save)
 
     def test_cannot_create_user_nickname_duplicate_key(self):
-        u = User(nickname='test_nickname', email='test_nickname@example.com', password="abc", salt="salt")
-        u2 = User(nickname='test_nickname', email='test_nickname2@example.com', password="abc", salt="salt")
+        u = User(nickname='test_nickname', email='test_nickname@example.com', password="FakeUserPassword123", salt="salt")
+        u2 = User(nickname='test_nickname', email='test_nickname2@example.com', password="FakeUserPassword123", salt="salt")
         u.save()
         self.assertRaises(NotUniqueError, u2.save)
 

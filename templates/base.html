@@ -26,11 +26,11 @@
     {% block content %}{% endblock %}
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <ul class=flashes>
-        {% for message in messages %}
-        <li>{{ message }}</li>
+        {% for m in messages %}
+        <div class="container">
+            <div class="alert alert-info"><p>{{ m }}</p></div>
+        </div>
         {% endfor %}
-    </ul>
     {% endif %}
     {% endwith %}
     {% include 'inc-footer.html' %}
