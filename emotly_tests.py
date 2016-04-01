@@ -4,8 +4,8 @@ Emotly Test Suite
 Consider adding separate TestCase instance for different features.
 KISS: Keep It Stupid Simple
 """
-import unittest, emotly
-from emotly import User
+import unittest, Emotly
+from Emotly.models import User
 from mongoengine import ValidationError, NotUniqueError
 
 # Simple page existance tests.
@@ -13,7 +13,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
 
     # Runs the test client.
     def setUp(self):
-        self.app = emotly.app.test_client()
+        self.app = Emotly.app.test_client()
 
     def tearDown(self):
         pass
@@ -32,7 +32,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
 # Controller: User Registration
 class EmotlyUserRegistrationTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = emotly.app.test_client()
+        self.app = Emotly.app.test_client()
 
     def tearDown(self):
         User.objects(nickname="nicknametest").delete()
@@ -96,7 +96,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
 
 class EmotlyUserModelTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = emotly.app.test_client()
+        self.app = Emotly.app.test_client()
 
     def tearDown(self):
         User.objects.delete()
