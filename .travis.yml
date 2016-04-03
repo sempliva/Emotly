@@ -7,7 +7,7 @@ python:
 
 # Environment variables go here.:)
 env:
-  - EMOTLY_DB_URI=mongodb://localhost/dummydb EMOTLY_DB_USERNAME=dummyuser EMOTLY_DB_PASSWORD=dummypassword EMOTLY_DB_DBNAME=db
+  - EMOTLY_DB_URI=mongodb://localhost/dummydb
 
 # Bind MongoDB.
 services: mongodb
