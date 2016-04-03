@@ -46,7 +46,7 @@ Nothing else to do, unless contributing your juicy grey matter.
 
 When running test class locally evironment variable "EMOTLY_DB_NAME" must be overridden. Local collections are automatically deleted after tests execution.
 ```
-EMOTLY_DB_URI="xxx" EMOTLY_DB_USERNAME="xxx" EMOTLY_DB_PASSWORD="xxx" python emotly_tests.py
+EMOTLY_DB_URI="mongodb://localhost/something" python emotly_tests.py
 ```
 
 ## Contributing
