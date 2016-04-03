@@ -4,7 +4,7 @@ Emotly Test Suite
 Consider adding separate TestCase instance for different features.
 KISS: Keep It Stupid Simple
 """
-import unittest, emotly
+import unittest, emotly, pep8, glob
 
 # Simple page existance tests.
 class BasicEmotlyPageCase(unittest.TestCase):
@@ -18,6 +18,17 @@ class BasicEmotlyPageCase(unittest.TestCase):
 
     def test_dummy(self):
         assert True
+
+    def test_code_style(self):
+        s = pep8.StyleGuide(quiet=True)
+        res = s.check_files(glob.glob('emotly*.py'))
+        if res.total_errors:
+            print("*** WARNING ***: found %s style errors" % res.total_errors)
+
+        # TODO: Enforcing the PEP8 tests is currently disabled; replace the first
+        # 0 with res.total_errors to enable.
+        self.assertEqual(0, 0, 'Found code style errors: run '
+                                              'pep8 on the files for details')
 
     def test_emotly_index(self):
         rv = self.app.get('/')
