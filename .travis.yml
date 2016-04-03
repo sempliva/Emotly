@@ -5,6 +5,19 @@ language: python
 python:
   - "3.5"
 
+# Environment variables go here.:)
+env:
+  - EMOTLY_DB_URI=mongodb://localhost/dummydb EMOTLY_DB_USERNAME=dummyuser EMOTLY_DB_PASSWORD=dummypassword
+
+# Bind MongoDB.
+services: mongodb
+
+# Delay the build of few seconds to allow MongoDB
+# to properly run and accept connections.
+before_script:
+  - sleep 15
+  - mongo mydb_test --eval 'db.addUser("travis", "test");'
+
 # Install all the dependencies.
 install: "pip install -r requirements.txt"
 

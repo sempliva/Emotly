@@ -24,6 +24,15 @@
 
     {% include 'inc-nav.html' %}
     {% block content %}{% endblock %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for m in messages %}
+        <div class="container">
+            <div class="alert alert-info"><p>{{ m }}</p></div>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
     {% include 'inc-footer.html' %}
 
     <script src="/static/assets/js/vendor/jquery-1.12.2.min.js"></script>
