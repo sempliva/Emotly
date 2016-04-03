@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config["MONGODB_SETTINGS"] = {
     'host': os.environ['EMOTLY_DB_URI'],
     'username': os.environ['EMOTLY_DB_USERNAME'],
-    'password': os.environ['EMOTLY_DB_PASSWORD']
+    'password': os.environ['EMOTLY_DB_PASSWORD'],
     'DB': os.environ['EMOTLY_DB_DBNAME']
 }
 app.secret_key = 'SECRETKEY'
