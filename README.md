@@ -6,11 +6,10 @@ The whole thing is a Python application meant to run as a service, at least that
 
 - **Python 3.5** (*or at least something that resembles Python3*)
 - **Pip** (*usually already part of the Python package*)
-- **Virtualenvwrapper**[^virtualenvwrapper], which should help you to not hate your life
+- **Virtualenvwrapper**, which should help you to not hate your life; just run `pip install virtualenvwrapper`
+- **MongoDB** is our backend; check your platform packaging system for info on how to install it
 
-  [^virtualenvwrapper]: Usually issuing `pip install virtualenvwrapper` is enough.
-
-> **Note**
+> **Notes**
 > We didn't find any problem *yet* with our choice of targeting Python 3.5.
 > Please let us know if you find some issue.
 
@@ -44,10 +43,18 @@ Nothing else to do, unless contributing your juicy grey matter.
 
 ## Running Tests
 
-When running test class locally evironment variable "EMOTLY_DB_NAME" must be overridden. Local collections are automatically deleted after tests execution.
+When running test class locally evironment variable "EMOTLY_DB_URI" **must be** specified. Local collections are automatically deleted after tests execution.
 ```
 EMOTLY_DB_URI="mongodb://localhost/something" python emotly_tests.py
 ```
+
+## Environment variables
+The following is a (hopefully) updated list of all the env var currently supported by the Emotly app.
+
+* `EMOTLY_DB_URI` [**required**] URI for the Mongo database
+* `EMOTLY_APP_SEC_SUPERSECRET` [**required**] A string, as complex as possible, for the secret (used for password generation)
+* `EMOTLY_APP_SEC_ROUNDS` A number (not lesser than 12) for the bcrypt() rounds; defaults to 12
+* `EMOTLY_APP_DEBUG_ENABLE` If specified (no matter the value), the app will be run with the `Debug` flag enabled
 
 ## Contributing
 
