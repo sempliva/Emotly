@@ -11,10 +11,8 @@ from flask.ext.mongoengine import MongoEngine
 app = Flask(__name__)
 app.config["MONGODB_SETTINGS"] = {
     'host': os.environ['EMOTLY_DB_URI'],
-    'username': os.environ['EMOTLY_DB_USERNAME'],
-    'password': os.environ['EMOTLY_DB_PASSWORD']
 }
-app.secret_key = 'super secret key'
+app.secret_key = os.environ['EMOTLY_APP_SEC_SUPERSECRET']
 app.config['SESSION_TYPE'] = 'filesystem'
 
 db = MongoEngine(app)

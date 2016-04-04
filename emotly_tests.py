@@ -23,8 +23,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
 
     def test_code_style(self):
         s = pep8.StyleGuide(quiet=True)
-        # TODO:add check for Emotly/*.py
-        res = s.check_files(glob.glob('emotly*.py'))
+        res = s.check_files(glob.glob('Emotly/*.py'))
         if res.total_errors:
             print("*** WARNING ***: found %s style errors" % res.total_errors)
 
