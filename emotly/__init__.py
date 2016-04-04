@@ -34,6 +34,19 @@ def serve_manifest():
     return app.send_static_file('app/manifest.json')
 
 
+# This serves the main PWA app screen.
+# We mock the URL by prepending /static to address the
+# ServiceWorker's scope.
+@app.route("/static/app/pwa")
+def serve_app():
+    return render_template("app-home.html")
+
+
+@app.route("/static/app/sw.js")
+def serve_sw():
+    return app.send_static_file('app/js/sw.js')
+
+
 # Gunicorn support.
 app.wsgi_app = ProxyFix(app.wsgi_app)
 

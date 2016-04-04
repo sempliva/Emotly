@@ -5,7 +5,7 @@ body {
 }
 
 .jumbotron {
-    background: url("assets/img/dandelion.jpg");
+    background: url("/static/app/img/dandelion.jpg");
 }
 
 /*
@@ -56,3 +56,6 @@ body {
     border-top-right-radius: 0;
 }
 
+#ulemotlies {
+    margin-top: 35px;
+}
