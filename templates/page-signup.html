@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Signup{% endblock %}
+{% block content %}
+
+    <form class="form-signin" method="POST">
+        <h2 class="form-signin-heading">Signup</h2>
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" type="email" name="inputEmail">
+        <label for="inputNickname" class="sr-only">Nickname</label>
+        <input id="inputNickname" class="form-control" placeholder="Nickname" required="" type="text" name="inputNickname">
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="inputPassword">
+        <button class="btn btn-lg btn-primary btn-block" type="submit"><span class="glyphicon glyphicon-ok"></span>&nbsp;Get emotional :)</button>
+    </form>
+
+{% endblock %}
