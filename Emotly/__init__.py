@@ -8,13 +8,13 @@ from flask import Flask, render_template
 from werkzeug.contrib.fixers import ProxyFix
 from flask.ext.mongoengine import MongoEngine
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../statics",
+            template_folder="../templates")
 app.config["MONGODB_SETTINGS"] = {
     'host': os.environ['EMOTLY_DB_URI'],
 }
 app.secret_key = os.environ['EMOTLY_APP_SEC_SUPERSECRET']
 app.config['SESSION_TYPE'] = 'filesystem'
-
 db = MongoEngine(app)
 
 
