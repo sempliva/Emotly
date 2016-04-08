@@ -58,6 +58,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 # declared at the beginning of this file.
 #
 from emotly.controllers.user_controller import user_controller
+from emotly.controllers.emotly_controller import emotly_controller
 
 app.register_blueprint(user_controller)
+app.register_blueprint(emotly_controller)
 # app.register_blueprint(yuppy_blueprint)
