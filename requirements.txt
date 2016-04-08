@@ -14,3 +14,4 @@ pymongo==3.2.2
 six==1.10.0
 Werkzeug==0.11.5
 WTForms==2.1
+python-postmark>=0.4.3
