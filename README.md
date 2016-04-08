@@ -55,6 +55,10 @@ The following is a (hopefully) updated list of all the env var currently support
 * `EMOTLY_APP_SEC_SUPERSECRET` [**required**] A string, as complex as possible, for the secret (used for password generation)
 * `EMOTLY_APP_SEC_ROUNDS` A number (not lesser than 12) for the bcrypt() rounds; defaults to 12
 * `EMOTLY_APP_DEBUG_ENABLE` If specified (no matter the value), the app will be run with the `Debug` flag enabled
+* `EMOTLY_STATIC_FOLDER` URL for the folder containing static files (ex. images, css)
+* `EMOTLY_TEMPLATE_FOLDER` URL for the folder containing flask templates
+
+
 
 ## Contributing
 

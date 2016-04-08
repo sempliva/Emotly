@@ -5,7 +5,7 @@ body {
 }
 
 .jumbotron {
-    background: url("/static/assets/img/dandelion.jpg");
+    background: url("assets/img/dandelion.jpg");
 }
 
 /*
