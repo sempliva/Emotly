@@ -3,8 +3,11 @@ Emotly Test Suite
 Consider adding separate TestCase instance for different features.
 KISS: Keep It Stupid Simple
 """
-import unittest, Emotly, pep8, glob
-from Emotly.models import User
+import unittest
+import pep8
+import glob
+from emotly import app
+from emotly.models import User
 from mongoengine import ValidationError, NotUniqueError
 
 
@@ -13,7 +16,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
 
     # Runs the test client.
     def setUp(self):
-        self.app = Emotly.app.test_client()
+        self.app = app.test_client()
 
     def tearDown(self):
         pass
@@ -22,15 +25,15 @@ class BasicEmotlyPageCase(unittest.TestCase):
         assert True
 
     def test_code_style(self):
-        s = pep8.StyleGuide(quiet=True)
-        res = s.check_files(glob.glob('Emotly/*.py'))
+        s = pep8.StyleGuide(quiet=False)
+        res = s.check_files(glob.glob('emotly/**/*.py', recursive=True))
         if res.total_errors:
-            print("*** WARNING ***: found %s style errors" % res.total_errors)
+            print("******* WARNING *******: found %s style errors" % res.total_errors)
 
         # TODO: Enforcing the PEP8 tests is currently disabled;
         # replace the first 0 with res.total_errors to enable.
-        self.assertEqual(0, 0, 'Found code style errors: run '
-                         'pep8 on the files for details')
+        self.assertEqual(0, 0, 'Found code style errors: run ' +
+            'pep8 on the files for details')
 
     def test_emotly_index(self):
         rv = self.app.get('/')
@@ -44,7 +47,7 @@ class BasicEmotlyPageCase(unittest.TestCase):
 # Controller: User Registration
 class EmotlyUserRegistrationTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = Emotly.app.test_client()
+        self.app = app.test_client()
 
     def tearDown(self):
         User.objects(nickname="nicknametest").delete()
@@ -109,7 +112,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
 # Tests for User model
 class EmotlyUserModelTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = Emotly.app.test_client()
+        self.app = app.test_client()
 
     def tearDown(self):
         User.objects.delete()
