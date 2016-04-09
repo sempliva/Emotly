@@ -48,6 +48,14 @@ When running test class locally evironment variable "EMOTLY_DB_URI" **must be** 
 EMOTLY_DB_URI="mongodb://localhost/something" python emotly_tests.py
 ```
 
+> **Default configuration**
+>
+> Starting with `commit 0b27545baa1f1521d1fe244e868e0ecfeea4ea58` we have introduced a configuration file called `config.py` in the root of the project.
+>
+> This file contains most sensible defaults, hence you can run `python run_tests.py` without specifying anything else.
+>
+> You are *encouraged* to be explicit in your running commands, though.
+
 ## Environment variables
 The following is a (hopefully) updated list of all the env var currently supported by the Emotly app.
 
@@ -59,6 +67,22 @@ The following is a (hopefully) updated list of all the env var currently support
 * `POSTMARK_SENDER` An email used in the from field.
 
 ## Contributing
+We'd **love** to get your help! Emotly is continously updated in production, the overall process is extremely straightforward:
 
-TODO
+ 1. **You** branch (*from master*)
+ 2. **You** work on your thing
+ 3. When you have something working, **you** push your branch
+ 4. **Our CI tool** (Travis) that will run all the tests for you and will let you know what happened
+ 5. If the tests succeed  **you** can go ahead and open a pull-request *against master*
+
+Very simple. **Somebody** will then review your changes; if there is some concern *the reviewer will also help you sort things out*. As soon as you get thumbs-up from a reviewer your branch will be merged into master.
+At that point, in few minutes, a new release of Emotly will be deployed in production, automatically. And you'll be our hero!
+
+> **Please be aware**
+>
+> You should *always add coverage* for new features. **Always**.
+>
+> Also, *your code should match our coding style guidelines* (basically PEP8 for Python code); `python run_tests.py` will give you an idea whether there's something noticeably wrong with your style.
+>
+> Coding style checks are not currently enforced but they will be, in time.
 
