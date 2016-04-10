@@ -3,13 +3,15 @@
   "icons": [
     {
       "src": "/static/app/icon/temp400.png",
-      "sizes": "96x96 48x48",
+      "sizes": "256x256 128x128 96x96 48x48",
       "type": "image/png"
     }
   ],
+  "start_url": "/",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "red",
   "lang": "en-US",
+  "scope": "/",
   "theme_color": "red"
 }
