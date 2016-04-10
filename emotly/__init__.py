@@ -23,6 +23,17 @@ db = MongoEngine(app)
 def index():
     return render_template("page-home.html")
 
+
+# FIXME: Serving the WebApp Manifest in the root seems to
+# be mandatory (or a bug in the implementation?), hence
+# we mock the URL here (/manifest.json instead of
+# /static/app/manifest.json).
+# The base.html template also links /manifest.json.
+@app.route("/manifest.json")
+def serve_manifest():
+    return app.send_static_file('app/manifest.json')
+
+
 # Gunicorn support.
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
