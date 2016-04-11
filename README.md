@@ -65,6 +65,7 @@ The following is a (hopefully) updated list of all the env var currently support
 * `EMOTLY_APP_DEBUG_ENABLE` If specified (no matter the value), the app will be run with the `Debug` flag enabled
 * `POSTMARK_API_TOKEN` Token used by Postmark API to send email. Set this to 'POSTMARK_API_TEST' to avoid actually sending mails.
 * `POSTMARK_SENDER` An email used in the from field.
+* `EMOTLY_APP_SEC_HMAC_SECRET` [**required**] A string, as complex as possible, for the hmac secret (used for Json Web Token generation)
 
 ## Contributing
 We'd **love** to get your help! Emotly is continously updated in production, the overall process is extremely straightforward:

@@ -38,6 +38,10 @@ PM_API_TOKEN = os.environ['POSTMARK_API_TOKEN'] if\
 EMAIL_SENDER = os.environ['POSTMARK_SENDER'] if\
     'POSTMARK_SENDER' in os.environ else 'test@test.test'
 
+# Secret used for a criptographic hash algorithm. Please
+# set it in the env variables.
+HMAC_SECRET_KEY = os.environ['EMOTLY_APP_SEC_HMAC_SECRET'] if\
+    'EMOTLY_APP_SEC_HMAC_SECRET' in os.environ else 'DUMMYSUPERSECRET0123'
 """
 # These are few configuration parameters we might want to set
 # in the future.
