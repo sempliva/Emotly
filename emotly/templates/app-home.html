@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block head_javascript %}
+<script src="{{url_for('static', filename='app/js/emotly.js')}}"></script>
+{% endblock %}
+{% block content %}
+    <!-- Uncomment for the list of emotlies. -->
+      <div class="container">
+          <ul class="list-group" id="ulemotlies">
+              <li class="list-group-item">
+             Nickname 1 
+                <span class="badge">Mood</span>
+              </li>
+              <li class="list-group-item">
+             Nickname 2
+                <span class="badge">Mood</span>
+              </li>
+              <li class="list-group-item">
+             Nickname 3 
+                <span class="badge">Mood</span>
+              </li>
+              <li class="list-group-item">
+             Nickname 4 
+                <span class="badge">Mood</span>
+              </li>
+              <li class="list-group-item">
+             Nickname 5 
+                <span class="badge">Mood</span>
+              </li>
+          </ul>
+      </div>
+
+{% endblock %}

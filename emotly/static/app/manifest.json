@@ -7,11 +7,11 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/",
+  "start_url": "/static/app/pwa",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "red",
   "lang": "en-US",
-  "scope": "/",
+  "scope": "/static/app",
   "theme_color": "red"
 }
