@@ -5,6 +5,7 @@ DEED
 """
 from emotly import db
 import datetime
+import bcrypt
 
 
 class Token(db.EmbeddedDocument):
@@ -25,7 +26,13 @@ class User(db.Document):
     last_login = db.DateTimeField()
     confirmation_token = db.EmbeddedDocumentField(Token)
 
-    # Serialize object formatting date
+    # Return true if a given password match with user password.
+    @staticmethod
+    def verify_password(user, password):
+        enc_password = user.password.encode('utf-8')
+        return bcrypt.hashpw(password, enc_password) == enc_password
+
+    # Used to format user's data in a more readable fashion.
     def serialize(self):
         return {'nickname': self.nickname}
 
@@ -41,10 +48,8 @@ class Emotly(db.Document):
     # Serialize object formatting date and mood and user if present.
     def serialize(self):
         if self.user:
-            return {
-                'mood': MOOD[self.mood],
-                'created_at': self.created_at.strftime('%Y-%m-%d'),
-                'user': self.user.serialize()}
-        return {
-            'mood': MOOD[self.mood],
-            'created_at': self.created_at.strftime('%Y-%m-%d')}
+            return {'mood': MOOD[self.mood],
+                    'created_at': self.created_at.strftime('%Y-%m-%d'),
+                    'user': self.user.serialize()}
+        return {'mood': MOOD[self.mood],
+                'created_at': self.created_at.strftime('%Y-%m-%d')}
