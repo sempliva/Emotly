@@ -4,30 +4,47 @@
 <script src="{{url_for('static', filename='app/js/emotly.js')}}"></script>
 {% endblock %}
 {% block content %}
+    <div class="progress" style="height: 6px;">
+      <div class="progress-bar progress-bar-striped" id="progressbar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="height: 6px; width: 100%">
+      </div>
+    </div>
+    <div class="alert center-block alert-info" id="emlmsg">
+    </div>
+    <!-- <p class="bg-info" id="emlmsg">...</p> -->
     <!-- Uncomment for the list of emotlies. -->
       <div class="container">
           <ul class="list-group" id="ulemotlies">
-              <li class="list-group-item">
-             Nickname 1 
-                <span class="badge">Mood</span>
-              </li>
-              <li class="list-group-item">
-             Nickname 2
-                <span class="badge">Mood</span>
-              </li>
-              <li class="list-group-item">
-             Nickname 3 
-                <span class="badge">Mood</span>
-              </li>
-              <li class="list-group-item">
-             Nickname 4 
-                <span class="badge">Mood</span>
-              </li>
-              <li class="list-group-item">
-             Nickname 5 
-                <span class="badge">Mood</span>
-              </li>
           </ul>
       </div>
 
+      <!-- This is the Login modal -->
+<div class="modal fade bs-example-modal-sm" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="loginModalLabel">Login</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- <form> -->
+          <div class="form-group">
+            <label for="exampleInputEmail1">Email address</label>
+            <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+          </div>
+          <!-- <button type="submit" class="btn btn-default">Submit</button> -->
+        <!-- </form> -->
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Login</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
