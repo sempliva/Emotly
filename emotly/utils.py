@@ -56,8 +56,8 @@ def generate_jwt_token(user, delta=datetime.timedelta(hours=300)):
     # generate the header and the payload message
     header = {'algo': 'sha256', 'type': 'jwt'}
     payload = {'nickname': user.nickname,
-               'expire': (user.last_login + delta).strftime("%Y:%m:%d %H:%M:%S")
-               }
+               'expire': (user.last_login + delta).
+               strftime("%Y:%m:%d %H:%M:%S")}
     # sign token using a cryptografically hash algoritm
     signature = sign_jwt(header, payload)
     jwt = {'header': header, 'payload': payload, 'signature': signature}

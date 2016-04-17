@@ -10,10 +10,11 @@ import datetime
 import json
 from mongoengine import ValidationError, NotUniqueError
 from emotly import app
-from emotly.models import User, Token
+from emotly.models import User, Token, Emotly, MOOD
 from emotly.controllers.user_controller import confirm_registration_email
 from emotly.utils import generate_confirmation_token
 from emotly.utils import generate_jwt_token, verify_jwt_token
+
 
 # Simple page existance tests.
 class BasicEmotlyPageCase(unittest.TestCase):
@@ -250,8 +251,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  password="FakeUserPassword123",
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
-        token = Token(token=token_string,
-                      created_at=datetime.datetime.now())
+        token = Token(token=token_string)
         u.confirmation_token = token
         self.assertTrue(u.save())
 
@@ -261,8 +261,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  password="FakeUserPassword123",
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
-        u.confirmation_token = Token(token=token_string,
-                                     created_at=datetime.datetime.now())
+        u.confirmation_token = Token(token=token_string)
         u.save()
 
         # Try to save an user with a token string already used
@@ -270,8 +269,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                   email='test_fake2@example.com',
                   password="FakeUserPassword123",
                   salt="salt")
-        u2.confirmation_token = Token(token=token_string,
-                                      created_at=datetime.datetime.now())
+        u2.confirmation_token = Token(token=token_string)
         self.assertRaises(NotUniqueError, u2.save)
 
     def test_confirm_email(self):
@@ -280,8 +278,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  password="FakeUserPassword123",
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
-        u.confirmation_token = Token(token=token_string,
-                                     created_at=datetime.datetime.now())
+        u.confirmation_token = Token(token=token_string)
         u.save()
         rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
         assert b'Email Confirmed' in rv.data
@@ -292,8 +289,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  password="FakeUserPassword123",
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
-        u.confirmation_token = Token(token=token_string,
-                                     created_at=datetime.datetime.now())
+        u.confirmation_token = Token(token=token_string)
         u.save()
         rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
         user = User.objects.only("update_at").get(pk=u.id)
@@ -305,8 +301,7 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  password="FakeUserPassword123",
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
-        u.confirmation_token = Token(token=token_string,
-                                     created_at=datetime.datetime.now())
+        u.confirmation_token = Token(token=token_string)
         u.save()
         confirm_registration_email(u.confirmation_token.token)
 
@@ -320,11 +315,12 @@ class EmotlyTokenModelTestCase(unittest.TestCase):
                  salt="salt")
         token_string = generate_confirmation_token(u.email)
         u.confirmation_token = Token(token=token_string,
-                                     created_at=datetime.datetime.now() +
+                                     created_at=datetime.datetime.now() -
                                      datetime.timedelta(days=2))
         u.save()
         rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
         assert b'Error in confirming email' in rv.data
+
 
 # TODO: add more testcase
 class EmotlyJWTTokenTestCases(unittest.TestCase):
@@ -364,16 +360,288 @@ class EmotlyJWTTokenTestCases(unittest.TestCase):
         token = json.dumps(token)
         assert not verify_jwt_token(str(token))
 
-
     def test_verify_JWT_expired_token(self):
         expired_time = datetime.datetime.now() - datetime.timedelta(hours=1000)
         u = User(nickname='confirmemail',
                  email='test_confirm_email@example.com',
                  password="FakeUserPassword123",
-                 last_login= expired_time,
+                 last_login=expired_time,
                  salt="salt")
         token = generate_jwt_token(u)
         assert not verify_jwt_token(str(token))
+
+
+# Tests for Emotly model
+class EmotlyModelTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+
+    def tearDown(self):
+        User.objects.delete()
+        Emotly.objects.delete()
+
+    def test_create_emotly(self):
+        u = User(nickname='testemotly',
+                 email='test_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        emotly = Emotly(mood=1)
+        emotly.user = u
+        self.assertTrue(emotly.save())
+
+    def test_cannot_create_emotly_whitout_user(self):
+        emotly = Emotly(mood=2)
+        with self.assertRaises(ValidationError):
+            emotly.save()
+
+    def test_cannot_create_emotly_whitout_mood(self):
+        u = User(nickname='testmood',
+                 email='test_mood@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        emotly = Emotly()
+        emotly.user = u
+        with self.assertRaises(ValidationError):
+            emotly.save()
+
+    def test_cannot_create_emotly_mood_not_valid(self):
+        u = User(nickname='testinvalid',
+                 email='test_mood_invalid@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        emotly = Emotly(mood=len(MOOD) + 1)
+        emotly.user = u
+        with self.assertRaises(ValidationError):
+            emotly.save()
+
+
+# Tests for Emotly REST APIT
+class EmotlyRESTAPITestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+
+    def tearDown(self):
+        User.objects.delete()
+        Emotly.objects.delete()
+
+    def test_cannot_get_emotlies_unauthorized(self):
+        rv = self.app.get("/api/1.0/emotlies/own")
+        assert rv.status_code == 403
+
+    def test_cannot_get_emotly_unauthorized(self):
+        rv = self.app.get("/api/1.0/emotlies/show/1")
+        assert rv.status_code == 403
+
+    def test_cannot_get_post_emotly_unauthorized(self):
+        m = {'mood': 1}
+        rv = self.app.post("/api/1.0/emotlies/new", data=json.dumps(m))
+        assert rv.status_code == 403
+
+    def test_post_emotly(self):
+        u = User(nickname='testpost',
+                 email='test_post_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        m = {'mood': 1}
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'auth_token': token}
+        rv = self.app.post("/api/1.0/emotlies/new",
+                           headers=headers, data=json.dumps(m))
+        assert rv.status_code == 200
+
+    def test_get_own_emotlies(self):
+        u = User(nickname='testget',
+                 email='test_get_emotlies@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        e = Emotly(mood=1)
+        e.user = u
+        e.save()
+
+        emotly = Emotly(mood=2)
+        emotly.user = u
+        emotly.save()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+
+        rv = self.app.get("/api/1.0/emotlies/own",
+                          headers=headers)
+        assert rv.status_code == 200
+
+    def test_get_emotlies(self):
+        u = User(nickname='testgetown',
+                 email='test_get_emotlies_own@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        e = Emotly(mood=1)
+        e.user = u
+        e.save()
+
+        u2 = User(nickname='testgetown2',
+                  email='test_get_emotlies_own2@example.com',
+                  password="FakeUserPassword123",
+                  confirmed_email=True,
+                  last_login=datetime.datetime.now(),
+                  salt="salt")
+        u2.save()
+        emotly = Emotly(mood=2)
+        emotly.user = u2
+        emotly.save()
+        rv = self.app.get("/api/1.0/emotlies")
+        assert rv.status_code == 200
+
+    def test_get_emotly(self):
+        u = User(nickname='testgetsingle',
+                 email='test_get_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        emotly = Emotly(mood=2)
+        emotly.user = u
+        emotly.save()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+
+        rv = self.app.get("/api/1.0/emotlies/show/" + str(emotly.id),
+                          headers=headers)
+        assert rv.status_code == 200
+
+    def test_get_empty_list_emotlies(self):
+        rv = self.app.get("/api/1.0/emotlies")
+        assert rv.status_code == 200
+
+    def test_get_empty_own_list_emotlies(self):
+        u = User(nickname='testgetempty',
+                 email='test_get_emotlies_own_empty@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.get("/api/1.0/emotlies/own", headers=headers)
+        assert rv.status_code == 200
+
+    def test_get_non_existing_emotly(self):
+        u = User(nickname='testnotexisting',
+                 email='test_get_ne_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        emotly = Emotly(mood=2)
+        emotly.user = u
+        emotly.save()
+        emotly.delete()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.get("/api/1.0/emotlies/show/" + str(emotly.id),
+                          headers=headers)
+        assert rv.status_code == 404
+
+    # Next 3 test non existing user access to api
+    def test_non_existing_user_get_emotlies(self):
+        u = User(nickname='fake',
+                 email='fake@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.get("/api/1.0/emotlies/user_emotlies",
+                          headers=headers)
+        assert rv.status_code == 404
+
+    def test_non_existing_user_get_emotly(self):
+        u = User(nickname='fake',
+                 email='fake@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+
+        rv = self.app.get("/api/1.0/emotlies/show/" + str(len(MOOD)),
+                          headers=headers)
+        assert rv.status_code == 404
+
+    def test_non_existing_user_post_emotly(self):
+        u = User(nickname='fake',
+                 email='fake@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        m = {'mood': 1}
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.post("/api/1.0/emotlies/new",
+                           headers=headers, data=json.dumps(m))
+        assert rv.status_code == 404
+
+    # Next 3 test user not confirmed access to api
+    def test_not_confirmed_user_post_emotly(self):
+        u = User(nickname='testpostnc',
+                 email='test_post_e_nc@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        m = {'mood': 1}
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.post("/api/1.0/emotlies/new",
+                           headers=headers, data=json.dumps(m))
+        assert rv.status_code == 403
+
+    def test_not_confirmed_user_get_emotlies(self):
+        u = User(nickname='testgetnc',
+                 email='test_get_emotlies_nc@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+
+        rv = self.app.get("/api/1.0/emotlies/own",
+                          headers=headers)
+        assert rv.status_code == 403
+
+    def test_not_confirmed_user_get_emotly(self):
+        u = User(nickname='testgetsinglenc',
+                 email='test_get_e_nc@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        headers = {'content-type': 'application/json',
+                   'auth_token': generate_jwt_token(u)}
+        rv = self.app.get("/api/1.0/emotlies/show/" + str(len(MOOD)),
+                          headers=headers)
+        assert rv.status_code == 403
 
 if __name__ == '__main__':
     unittest.main()

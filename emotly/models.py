@@ -9,7 +9,7 @@ import datetime
 
 class Token(db.EmbeddedDocument):
     token = db.StringField(unique=True, sparse=True)
-    created_at = db.DateTimeField(required=True)
+    created_at = db.DateTimeField(default=datetime.datetime.now())
 
 
 class User(db.Document):
@@ -20,7 +20,31 @@ class User(db.Document):
     password = db.StringField(min_length=8, required=True)
     salt = db.StringField(required=True)
     confirmed_email = db.BooleanField(default=False)
-    created_at = db.DateTimeField(default=datetime.datetime.now)
+    created_at = db.DateTimeField(default=datetime.datetime.now())
     update_at = db.DateTimeField()
     last_login = db.DateTimeField()
     confirmation_token = db.EmbeddedDocumentField(Token)
+
+    # Serialize object formatting date
+    def serialize(self):
+        return {'nickname': self.nickname}
+
+MOOD = {1: "sad", 2: "happy", 3: "proud"}
+
+
+class Emotly(db.Document):
+    mood = db.IntField(required=True, choices=list(MOOD))
+    user = db.ReferenceField(User, required=True)
+    created_at = db.DateTimeField(default=datetime.datetime.now())
+
+    # TODO Change in something better.
+    # Serialize object formatting date and mood and user if present.
+    def serialize(self):
+        if self.user:
+            return {
+                'mood': MOOD[self.mood],
+                'created_at': self.created_at.strftime('%Y-%m-%d'),
+                'user': self.user.serialize()}
+        return {
+            'mood': MOOD[self.mood],
+            'created_at': self.created_at.strftime('%Y-%m-%d')}
