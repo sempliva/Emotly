@@ -1,15 +1,20 @@
-    <nav class="navbar navbar-inverse navbar-fixed-top">
+    <!-- <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
           <span class="navbar-brand">Emotly</span>
-          <p style="color: #555" class="navbar-text">In active development</p>
+          <p style="color: #777" class="navbar-text" id="navbartext">In Development</p>
+        </div>
+        <div class="nav navbar navbar-right">
+          <button type="button" name="button" class="btn btn-default btn-xs">New Emotly</button>
+
+
         </div>
       </div>
-    </nav>
+    </nav> -->
 
 
     <!-- Use the following if a collapsable navbar is needed. -->
-    <!-- <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -23,7 +28,7 @@
         </div>
 
         <div id="navbar" class="navbar-collapse collapse">
-          <form class="navbar-form navbar-right">
+          <!-- <form class="navbar-form navbar-right">
             <div class="form-group">
               <input type="text" placeholder="Email or nickname" class="form-control" disabled>
             </div>
@@ -31,10 +36,12 @@
               <input type="password" placeholder="Password" class="form-control" disabled>
             </div>
             <button type="submit" class="btn btn-success" disabled><span class="glyphicon glyphicon-lock"></span>&nbsp;Sign in is disabled</button>
-          </form>
-
-          <p class="navbar-right navbar-text">USERWELCOMEHERE</p>
+          </form> -->
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#" id="alogin" data-toggle="modal" data-target="#loginModal"><span class="glyphicon glyphicon-user"></span>&nbsp;Login</a></li>
+          </ul>
+          <p class="navbar-right navbar-text" id="pnickname"></p>
 
         </div>
       </div>
-    </nav> -->
+    </nav>

@@ -10,7 +10,7 @@ function L(msg) {
 
 // EMOTLY_CACHE_NAME should also be used in the UI
 // to identify the version.
-var EMOTLY_CACHE_NAME = "pwa-dev-client-v1";
+var EMOTLY_CACHE_NAME = "pwa-dev-client-v2";
 var EMOTLY_CACHE_FLES = [
     '/static/app/pwa', '/static/app/ext/bootstrap/css/bootstrap.min.css',
     '/static/app/css/emotly.css', '/static/app/ext/js/jquery/jquery-1.12.2.min.js',
@@ -19,6 +19,7 @@ var EMOTLY_CACHE_FLES = [
     '/static/app/img/dandelion.jpg', '/static/app/img/sloth.jpg',
     '/static/app/ext/css/ie10-viewport-bug-workaround.css',
     '/static/app/ext/js/ie10-viewport-bug-workaround.js',
+    '/static/app/ext/bootstrap/fonts/glyphicons-halflings-regular.woff2'
 ];
 
 L('booted up');
@@ -58,7 +59,15 @@ self.addEventListener('activate', function(event) {
 // Fetch handler.
 this.addEventListener('fetch', function(event) {
     L('fetch');
-    var response;
+
+    // This is a pass-through for every Request that has an X-EMOTLY header.
+    // X-EMOTLY requests should be the ones coming from emotly.js.
+    //
+    // TODO: This might be a security issue given the open file...:)
+    if (event.request.headers.get('X-EMOTLY')) {
+      return fetch(event.request);
+    }
+
     event.respondWith(caches.match(event.request).catch(function() {
         return fetch(event.request); })
     .then(function(r) {
@@ -74,6 +83,10 @@ this.addEventListener('fetch', function(event) {
     }));
 });
 
-self.addEventListener('message', function handler (event) {
-    console.log('From SW: ' + event.data);
-});
+// self.addEventListener('message', function handler (event) {
+//     console.log('OKOK From SW: ' + event.data);
+//     if (event.data == 'ONE') {
+//       console.log('ONE IS CONFIRMED!!!');
+//       event.ports[0].postMessage('TWO');
+//     }
+// });

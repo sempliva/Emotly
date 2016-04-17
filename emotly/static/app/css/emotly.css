@@ -59,3 +59,10 @@ body {
 #ulemotlies {
     margin-top: 35px;
 }
+
+#emlmsg {
+  width: 80%;
+  margin-top: 20px;
+  margin-bottom: -15px;
+  display: none;
+}
