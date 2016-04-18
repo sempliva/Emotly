@@ -40,7 +40,8 @@ def require_token_and_pass_user(pass_user):
                 # If does not exist return 404.
                 except DoesNotExist:
                     return make_response(jsonify({'message':
-                                                  'Authentication error.'}), 404)
+                                                  'Authentication error.'}),
+                                         404)
             # If the request has no user token or it is not valid 403.
             return make_response(jsonify({'message': 'Unauthorized access.'}),
                                  403)
@@ -56,9 +57,10 @@ def list_emotlies():
     except Exception:
         return make_response(jsonify({'message': 'Internal server error'}),
                              500)
-    # At the moment serialize mood, creation date of the mood and user nickname.
-    return make_response(jsonify({'emotlies': [e.serialize() for e in emotlies]}),
-                         200)
+    # At the moment serialize mood, creation date of the mood
+    # and user nickname.
+    return make_response(jsonify({'emotlies':
+                                  [e.serialize() for e in emotlies]}), 200)
 
 
 # Retrieve the current user's emotlies list.
@@ -70,8 +72,8 @@ def list_own_emotlies(user):
     except Exception:
         return make_response(jsonify({'message': 'Internal server error'}),
                              500)
-    return make_response(jsonify({'emotlies': [e.serialize() for e in emotlies]}),
-                         200)
+    return make_response(jsonify({'emotlies':
+                                  [e.serialize() for e in emotlies]}), 200)
 
 
 # Create a new emotly for the current user.
@@ -98,5 +100,6 @@ def get_emotly(emotly_id):
     except DoesNotExist:
         return make_response(jsonify({'message': 'Emotly error.'}), 404)
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}), 500)
+        return make_response(jsonify({'message': 'Internal server error'}),
+                             500)
     return make_response(jsonify({'emotly': emotly.serialize()}), 200)
