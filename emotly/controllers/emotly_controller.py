@@ -18,36 +18,32 @@ from emotly.utils import verify_jwt_token
 emotly_controller = Blueprint('emotly_controller', __name__)
 
 
-# Decorator used to check user and token for emotlies api.
-# If the argument pass_user is true the decorator
-# return the user to the original fn.
-def require_token_and_pass_user(pass_user):
-    def require_token(api_method):
-        @wraps(api_method)
-        def check_api_key(*args, **kwargs):
-            auth_token = request.headers.get('auth_token')
-            if auth_token and verify_jwt_token(auth_token):
-                try:
-                    user = get_user_from_jwt_token(auth_token)
-                    # Check if user is confirmed, return 403 if does not exist.
-                    user_confirmed = is_user_confirmed(user.id)
-                    if user_confirmed and pass_user:
-                        # Pass user as first argument to the original fn.
-                        return api_method(user, *args, **kwargs)
-                    if user_confirmed:
-                        return api_method(*args, **kwargs)
-                    return make_response(jsonify({'message': 'User error.'}),
-                                         403)
-                # If does not exist return 404.
-                except DoesNotExist:
-                    return make_response(jsonify({'message':
-                                                  'Authentication error.'}),
-                                         404)
-            # If the request has no user token or it is not valid 403.
-            return make_response(jsonify({'message': 'Unauthorized access.'}),
-                                 403)
-        return check_api_key
-    return require_token
+# Decorator used to check user and token for emotlies api
+# and return the user to the original fn.
+def require_token(api_method):
+    @wraps(api_method)
+    def check_api_key(*args, **kwargs):
+        auth_token = request.headers.get('auth_token')
+        if auth_token and verify_jwt_token(auth_token):
+            try:
+                user = get_user_from_jwt_token(auth_token)
+                # Check if user is confirmed, return 403 if does not exist.
+                user_confirmed = is_user_confirmed(user.id)
+                if user_confirmed:
+                    # Pass user as in the  kwargs to the original fn.
+                    kwargs['user'] = user
+                    return api_method(*args, **kwargs)
+                return make_response(jsonify({'message': 'User error.'}),
+                                     403)
+            # If does not exist return 404.
+            except DoesNotExist:
+                return make_response(jsonify({'message':
+                                              'Authentication error.'}),
+                                     404)
+        # If the request has no user token or it is not valid 403.
+        return make_response(jsonify({'message': 'Unauthorized access.'}),
+                             403)
+    return check_api_key
 
 
 # Retrieve the emotlies list.
@@ -66,9 +62,10 @@ def list_emotlies():
 
 # Retrieve the current user's emotlies list.
 @emotly_controller.route('/api/1.0/emotlies/own', methods=['GET'])
-@require_token_and_pass_user(True)
-def list_own_emotlies(user):
+@require_token
+def list_own_emotlies(**kwargs):
     try:
+        user = kwargs['user']
         emotlies = Emotly.objects(user=user.id).only("mood", "created_at")
     except Exception:
         return make_response(jsonify({'message': 'Internal server error'}),
@@ -79,9 +76,10 @@ def list_own_emotlies(user):
 
 # Create a new emotly for the current user.
 @emotly_controller.route('/api/1.0/emotlies/new', methods=['POST'])
-@require_token_and_pass_user(True)
-def post_new_emotly(user):
+@require_token
+def post_new_emotly(**kwargs):
     try:
+        user = kwargs['user']
         data = json.loads(request.data.decode('utf-8'))
         emotly = Emotly(mood=data['mood'])
         emotly.user = user
@@ -94,8 +92,8 @@ def post_new_emotly(user):
 
 # Retrieve a specific emotly.
 @emotly_controller.route('/api/1.0/emotlies/show/<emotly_id>', methods=['GET'])
-@require_token_and_pass_user(False)
-def get_emotly(emotly_id):
+@require_token
+def get_emotly(emotly_id, **kwargs):
     try:
         emotly = Emotly.objects.only("mood", "created_at").get(id=emotly_id)
     except DoesNotExist:
