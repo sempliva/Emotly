@@ -49,7 +49,7 @@ class Emotly(db.Document):
     def serialize(self):
         if self.user:
             return {'mood': MOOD[self.mood],
-                    'created_at': self.created_at.strftime('%Y-%m-%d'),
+                    'created_at': self.created_at.isoformat(),
                     'user': self.user.serialize()}
         return {'mood': MOOD[self.mood],
-                'created_at': self.created_at.strftime('%Y-%m-%d')}
+                'created_at': self.created_at.isoformat()}
