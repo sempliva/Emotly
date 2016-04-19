@@ -12,6 +12,7 @@ import base64
 import datetime
 from postmark import PMMail
 from emotly import app
+from emotly import constants as CONSTANTS
 
 
 # Create the salt for the user registration.
@@ -28,8 +29,9 @@ def hash_password(password, salt):
 def generate_confirmation_token(email):
     token_string = hashlib.sha224(get_salt() +
                                   email.encode('utf-8') +
-                                  datetime.datetime.now().strftime("%I:%M:%S")
-                                                         .encode('utf-8') +
+                                  datetime.datetime.now()
+                                  .strftime(CONSTANTS.DATE_FORMAT)
+                                  .encode('utf-8') +
                                   get_salt()).hexdigest()
     return token_string
 
@@ -58,7 +60,8 @@ def generate_jwt_token(user, delta=datetime.timedelta(hours=300)):
     starting_date = user.last_login \
         if user.last_login is not None else datetime.datetime.now()
     payload = {'nickname': user.nickname,
-               'expire': (starting_date + delta).strftime("%Y:%m:%d %H:%M:%S")
+               'expire': (starting_date + delta)
+               .strftime(CONSTANTS.DATE_FORMAT)
                }
     # sign token using a cryptografically hash algoritm
     signature = sign_jwt(header, payload)
@@ -72,7 +75,7 @@ def verify_jwt_token(token):
     json_format = json.loads(token)
     date_today = datetime.datetime.now()
     date_expire = datetime.datetime.strptime(json_format["payload"]["expire"],
-                                             "%Y:%m:%d %H:%M:%S")
+                                             CONSTANTS.DATE_FORMAT)
     if date_expire < date_today:
         return False
     signature_received = sign_jwt(json_format["header"],
