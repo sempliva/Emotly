@@ -3,10 +3,11 @@ Emotly
 
 DEED
 """
-from flask import Blueprint, request, flash, jsonify, make_response, json
+import json
+from flask import Blueprint, request, flash, jsonify, make_response
 from flask.ext.mongoengine import MongoEngine
 from functools import wraps
-from emotly.models import User, Emotly
+from emotly.models import User, Emotly, MOOD
 from mongoengine import DoesNotExist
 from emotly.controllers.user_controller import get_user_from_jwt_token
 from emotly.controllers.user_controller import is_user_confirmed
@@ -81,7 +82,7 @@ def list_own_emotlies(user):
 @require_token_and_pass_user(True)
 def post_new_emotly(user):
     try:
-        data = json.loads(request.data)
+        data = json.loads(request.data.decode('utf-8'))
         emotly = Emotly(mood=data['mood'])
         emotly.user = user
         emotly.save()
@@ -103,3 +104,16 @@ def get_emotly(emotly_id):
         return make_response(jsonify({'message': 'Internal server error'}),
                              500)
     return make_response(jsonify({'emotly': emotly.serialize()}), 200)
+
+
+# Retrieve the list of moods.
+@emotly_controller.route('/api/1.0/moods', methods=['GET'])
+def list_moods():
+    try:
+        formatted_mood = [{"id": k, "value": v}
+                          for k, v in MOOD.items()]
+        moods = make_response(jsonify({'moods': formatted_mood}), 200)
+    except Exception:
+        return make_response(jsonify({'message': 'Internal server error'}),
+                             500)
+    return moods

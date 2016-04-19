@@ -499,6 +499,22 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         User.objects.delete()
         Emotly.objects.delete()
 
+    def test_get_moods(self):
+        rv = self.app.get("/api/1.0/moods")
+        self.assertEqual(rv.status_code, 200)
+
+    def test_moods_size(self):
+        rv = self.app.get("/api/1.0/moods")
+        data = json.loads(rv.data.decode('utf-8'))
+        self.assertEqual(len(data['moods']), len(MOOD))
+
+    def test_moods_type(self):
+        rv = self.app.get("/api/1.0/moods")
+        data = json.loads(rv.data.decode('utf-8'))
+        for mood in data['moods']:
+            self.assertEqual(type(mood['id']), int)
+            self.assertEqual(type(mood['value']), str)
+
     def test_cannot_get_emotlies_unauthorized(self):
         rv = self.app.get("/api/1.0/emotlies/own")
         self.assertEqual(rv.status_code, 403)
