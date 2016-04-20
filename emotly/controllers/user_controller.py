@@ -8,7 +8,7 @@ import json
 from flask import Blueprint, request, render_template
 from flask import flash, jsonify, make_response
 from emotly.models import User, Token
-from mongoengine import DoesNotExist
+from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 from emotly.utils import get_salt, hash_password
 from emotly.utils import generate_confirmation_token
 from emotly.utils import send_email_confirmation
@@ -60,11 +60,14 @@ def signup():
         return render_template("page-signup.html")
     try:
         register_user(request)
-        flash('Registration completed, please check your email.')
-    # TODO: Emotly-specific exception for human readable errors.
-    # TODO: DO _NOT_ forget to update the negative test cases!
-    except Exception as e:
-        flash('Registration error: %s' % e)
+        flash('Registration completed! Ceck your email :)')
+    except ValidationError:
+        flash('Registration error: \
+              Please insert valid data!', 'Error')
+    except NotUniqueError:
+        flash('Registration error: User already exist!', 'Error')
+    except Exception:
+        flash('Internal server error', 'Error')
     return render_template("page-home.html")
 
 

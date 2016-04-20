@@ -83,7 +83,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                                    inputNickname="incompleterequest",
                                    inputPassword="password"),
                                follow_redirects=True)
-            assert b'Registration error' in rv.data
+            assert b'Internal server error' in rv.data
 
     def test_signup_short_nickname(self):
             rv = self.app.post('/signup',
