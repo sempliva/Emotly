@@ -66,3 +66,7 @@ body {
   margin-bottom: -15px;
   display: none;
 }
+
+#liLogout {
+  display: none;
+}

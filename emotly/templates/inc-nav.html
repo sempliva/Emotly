@@ -24,7 +24,7 @@
             <span class="icon-bar"></span>
           </button>
           <a class="navbar-brand" href="/">Emotly</a>
-          <p style="color: #555" class="navbar-text">In active development</p>
+          <p style="color: #888" class="navbar-text" id="navbrandtext">In active development</p>
         </div>
 
         <div id="navbar" class="navbar-collapse collapse">
@@ -38,10 +38,9 @@
             <button type="submit" class="btn btn-success" disabled><span class="glyphicon glyphicon-lock"></span>&nbsp;Sign in is disabled</button>
           </form> -->
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#" id="alogin" data-toggle="modal" data-target="#loginModal"><span class="glyphicon glyphicon-user"></span>&nbsp;Login</a></li>
+            <li id="liLogin"><a href="#" id="alogin" data-toggle="modal" data-target="#loginModal"><span class="glyphicon glyphicon-user"></span>&nbsp;Login</a></li>
+            <li id="liLogout"><a href="#" id="alogout"><span class="glyphicon glyphicon-off"></span>&nbsp;Logout</a></li>
           </ul>
-          <p class="navbar-right navbar-text" id="pnickname"></p>
-
         </div>
       </div>
     </nav>
