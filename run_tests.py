@@ -75,7 +75,7 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                                inputNickname="nicknametest",
                                inputEmail="email@emailtest.com",
                                inputPassword="password"))
-        assert b'Registration completed! Ceck your email :)' in rv.data
+        assert b'Registration completed' in rv.data
 
     def test_signup_incomplete_request(self):
             rv = self.app.post('/signup',

@@ -60,7 +60,7 @@ def signup():
         return render_template("page-signup.html")
     try:
         register_user(request)
-        flash('Registration completed! Ceck your email :)')
+        flash('Registration completed, please check your email.')
     # TODO: Emotly-specific exception for human readable errors.
     # TODO: DO _NOT_ forget to update the negative test cases!
     except Exception as e:
