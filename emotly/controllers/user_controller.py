@@ -29,7 +29,10 @@ def login():
     try:
         # Retrieve json data and user data.
         data = json.loads(request.data.decode('utf-8'))
-        user = User.objects.get(email=data['email'])
+        if '@' in data['user_id']:
+            user = User.objects.get(email=data['user_id'])
+        else:
+            user = User.objects.get(nickname=data['user_id'])
     except DoesNotExist:
         # User does not exist.
         return make_response(jsonify({'message':

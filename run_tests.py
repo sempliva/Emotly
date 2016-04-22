@@ -360,7 +360,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
     def tearDown(self):
         User.objects.delete()
 
-    def test_login_success(self):
+    def test_login_email_success(self):
         salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtest.com',
@@ -369,7 +369,23 @@ class EmotlyLoginTestCases(unittest.TestCase):
                  salt="salt")
         u.save()
 
-        user_data = {'email': 'email@emailtest.com',
+        user_data = {'user_id': 'email@emailtest.com',
+                     'password': 'password'}
+        rv = self.app.post('/api/1.0/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_nickname_success(self):
+        salt = get_salt()
+        u = User(nickname='testnickname',
+                 email='email2@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'testnickname',
                      'password': 'password'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
@@ -385,14 +401,15 @@ class EmotlyLoginTestCases(unittest.TestCase):
                  salt="salt")
         u.save()
 
-        user_data = {'email': 'email@emailtest.com',
+        user_data = {'user_id': 'email@emailtest.com',
                      'password': 'password'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='http://localhost')
         self.assertEqual(rv.status_code, 403)
 
-    def test_login_fail(self):
+
+    def test_login_email_fail(self):
         salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtestwrong.com',
@@ -400,7 +417,23 @@ class EmotlyLoginTestCases(unittest.TestCase):
                  confirmed_email=True,
                  salt="salt")
         u.save()
-        user_data = {'email': 'email@emailtestwrong.com',
+        user_data = {'user_id': 'email@emailtestwrong.com',
+                     'password': 'passwordwrong'}
+        rv = self.app.post('/api/1.0/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+
+        self.assertEqual(rv.status_code, 403)
+
+    def test_login_nickname_fail(self):
+        salt = get_salt()
+        u = User(nickname='testnfail',
+                 email='email22@emailtestwrong.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+        user_data = {'user_id': 'testnfail',
                      'password': 'passwordwrong'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
@@ -409,13 +442,14 @@ class EmotlyLoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 403)
 
     def test_login_user_not_registered(self):
-        user_data = {'email': 'santaclaus@lostisland.com',
+        user_data = {'user_id': 'santaclaus@lostisland.com',
                      'password': 'hohoho'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
         self.assertEqual(rv.status_code, 404)
+
 
     def test_login_email_not_confirmed(self):
         salt = get_salt()
@@ -425,7 +459,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
                  confirmed_email=False,
                  salt="salt")
         u.save()
-        user_data = {'email': 'email@notconfirmed.com',
+        user_data = {'user_id': 'email@notconfirmed.com',
                      'password': 'password'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
