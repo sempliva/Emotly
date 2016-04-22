@@ -2,7 +2,7 @@
   "name": "Emotly",
   "icons": [
     {
-      "src": "/static/app/icon/temp400.png",
+      "src": "/static/app/icon/monster512.png",
       "sizes": "256x256 128x128 96x96 48x48",
       "type": "image/png"
     }
