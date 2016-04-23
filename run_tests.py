@@ -15,6 +15,7 @@ from emotly.controllers.user_controller import confirm_registration_email
 from emotly.utils import generate_confirmation_token
 from emotly.utils import generate_jwt_token, verify_jwt_token, hash_password
 from emotly.utils import get_salt
+from emotly import constants as CONSTANTS
 
 
 # Simple page existance tests.
@@ -75,39 +76,42 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
                                inputNickname="nicknametest",
                                inputEmail="email@emailtest.com",
                                inputPassword="password"))
-        assert b'Registration completed' in rv.data
+        assert (CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL).\
+            encode('utf-8') in rv.data
 
     def test_signup_incomplete_request(self):
-            rv = self.app.post('/signup',
-                               data=dict(
-                                   inputNickname="incompleterequest",
-                                   inputPassword="password"),
-                               follow_redirects=True)
-            assert b'Internal server error' in rv.data
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="incompleterequest",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        assert (CONSTANTS.INTERNAL_SERVER_ERROR).encode('utf-8') in rv.data
 
     def test_signup_short_nickname(self):
-            rv = self.app.post('/signup',
-                               data=dict(
-                                   inputNickname="short",
-                                   inputEmail="email@short.com",
-                                   inputPassword="password"),
-                               follow_redirects=True)
-            assert b'Registration error' in rv.data
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="short",
+                               inputEmail="email@short.com",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        assert (CONSTANTS.REGISTRAION_ERROR_INVALID_DATA).\
+            encode('utf-8') in rv.data
 
     def test_signup_user_exist(self):
-            rv = self.app.post('/signup',
-                               data=dict(
-                                   inputNickname="nicknametest1",
-                                   inputEmail="email@nicknametest1.com",
-                                   inputPassword="password"),
-                               follow_redirects=True)
-            rv = self.app.post('/signup',
-                               data=dict(
-                                   inputNickname="nicknametest1",
-                                   inputEmail="email@nicknametest1.com",
-                                   inputPassword="password"),
-                               follow_redirects=True)
-            assert b'Registration error: ' in rv.data
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="nicknametest1",
+                               inputEmail="email@nicknametest1.com",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="nicknametest1",
+                               inputEmail="email@nicknametest1.com",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        assert (CONSTANTS.REGISTRAION_ERROR_USER_EXISTS).\
+            encode('utf-8') in rv.data
 
 
 # Tests for User model
@@ -367,7 +371,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
 
         user_data = {'email': 'email@emailtest.com',
                      'password': 'password'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
@@ -383,7 +387,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
 
         user_data = {'email': 'email@emailtest.com',
                      'password': 'password'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='http://localhost')
         self.assertEqual(rv.status_code, 403)
@@ -398,7 +402,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
         u.save()
         user_data = {'email': 'email@emailtestwrong.com',
                      'password': 'passwordwrong'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
@@ -407,7 +411,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
     def test_login_user_not_registered(self):
         user_data = {'email': 'santaclaus@lostisland.com',
                      'password': 'hohoho'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
@@ -423,7 +427,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
         u.save()
         user_data = {'email': 'email@notconfirmed.com',
                      'password': 'password'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
@@ -431,7 +435,7 @@ class EmotlyLoginTestCases(unittest.TestCase):
 
     def test_login_missing_data(self):
         user_data = {'password': 'passwordwrong'}
-        rv = self.app.post('/api/1.0/login',
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + 'login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
@@ -500,32 +504,33 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         Emotly.objects.delete()
 
     def test_get_moods(self):
-        rv = self.app.get("/api/1.0/moods")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "moods")
         self.assertEqual(rv.status_code, 200)
 
     def test_moods_size(self):
-        rv = self.app.get("/api/1.0/moods")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "moods")
         data = json.loads(rv.data.decode('utf-8'))
         self.assertEqual(len(data['moods']), len(MOOD))
 
     def test_moods_type(self):
-        rv = self.app.get("/api/1.0/moods")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "moods")
         data = json.loads(rv.data.decode('utf-8'))
         for mood in data['moods']:
             self.assertEqual(type(mood['id']), int)
             self.assertEqual(type(mood['value']), str)
 
     def test_cannot_get_emotlies_unauthorized(self):
-        rv = self.app.get("/api/1.0/emotlies/own")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own")
         self.assertEqual(rv.status_code, 403)
 
     def test_cannot_get_emotly_unauthorized(self):
-        rv = self.app.get("/api/1.0/emotlies/show/1")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/1")
         self.assertEqual(rv.status_code, 403)
 
     def test_cannot_get_post_emotly_unauthorized(self):
         m = {'mood': 1}
-        rv = self.app.post("/api/1.0/emotlies/new", data=json.dumps(m))
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
+                           data=json.dumps(m))
         self.assertEqual(rv.status_code, 403)
 
     def test_post_emotly(self):
@@ -540,7 +545,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         token = generate_jwt_token(u)
         headers = {'content-type': 'application/json',
                    'auth_token': token}
-        rv = self.app.post("/api/1.0/emotlies/new",
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 200)
 
@@ -562,7 +567,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
 
-        rv = self.app.get("/api/1.0/emotlies/own",
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
                           headers=headers)
         self.assertEqual(rv.status_code, 200)
 
@@ -588,7 +593,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         emotly = Emotly(mood=2)
         emotly.user = u2
         emotly.save()
-        rv = self.app.get("/api/1.0/emotlies")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies")
         self.assertEqual(rv.status_code, 200)
 
     def test_get_emotly(self):
@@ -610,7 +615,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_get_empty_list_emotlies(self):
-        rv = self.app.get("/api/1.0/emotlies")
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies")
         self.assertEqual(rv.status_code, 200)
 
     def test_get_empty_own_list_emotlies(self):
@@ -623,7 +628,8 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         u.save()
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.get("/api/1.0/emotlies/own", headers=headers)
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
+                          headers=headers)
         self.assertEqual(rv.status_code, 200)
 
     def test_get_non_existing_emotly(self):
@@ -640,8 +646,8 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         emotly.delete()
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.get("/api/1.0/emotlies/show/" + str(emotly.id),
-                          headers=headers)
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
+                          str(emotly.id), headers=headers)
         self.assertEqual(rv.status_code, 404)
 
     # Next 3 test non existing user access to api
@@ -653,7 +659,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  salt="salt")
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.get("/api/1.0/emotlies/user_emotlies",
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/user_emotlies",
                           headers=headers)
         self.assertEqual(rv.status_code, 404)
 
@@ -666,8 +672,8 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
 
-        rv = self.app.get("/api/1.0/emotlies/show/" + str(len(MOOD)),
-                          headers=headers)
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
+                          str(len(MOOD)), headers=headers)
         self.assertEqual(rv.status_code, 404)
 
     def test_non_existing_user_post_emotly(self):
@@ -679,7 +685,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         m = {'mood': 1}
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.post("/api/1.0/emotlies/new",
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 404)
 
@@ -694,7 +700,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         m = {'mood': 1}
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.post("/api/1.0/emotlies/new",
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 403)
 
@@ -708,7 +714,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
 
-        rv = self.app.get("/api/1.0/emotlies/own",
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
                           headers=headers)
         self.assertEqual(rv.status_code, 403)
 
@@ -721,8 +727,8 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         u.save()
         headers = {'content-type': 'application/json',
                    'auth_token': generate_jwt_token(u)}
-        rv = self.app.get("/api/1.0/emotlies/show/" + str(len(MOOD)),
-                          headers=headers)
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
+                          str(len(MOOD)), headers=headers)
         self.assertEqual(rv.status_code, 403)
 
 if __name__ == '__main__':

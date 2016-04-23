@@ -5,6 +5,7 @@ DEED
 """
 import json
 from flask import Blueprint, request, flash, jsonify, make_response
+from emotly import constants as CONSTANTS
 from flask.ext.mongoengine import MongoEngine
 from functools import wraps
 from emotly.models import User, Emotly, MOOD
@@ -33,27 +34,26 @@ def require_token(api_method):
                     # Pass user as in the  kwargs to the original fn.
                     kwargs['user'] = user
                     return api_method(*args, **kwargs)
-                return make_response(jsonify({'message': 'User error.'}),
-                                     403)
+                return make_response(jsonify(
+                    {'message': CONSTANTS.USER_NOT_CONFIRMED}), 403)
             # If does not exist return 404.
             except DoesNotExist:
                 return make_response(jsonify({'message':
-                                              'Authentication error.'}),
-                                     404)
+                                     CONSTANTS.USER_DOES_NOT_EXIST}), 404)
         # If the request has no user token or it is not valid 403.
-        return make_response(jsonify({'message': 'Unauthorized access.'}),
-                             403)
+        return make_response(jsonify({'message': CONSTANTS.UNAUTHORIZED}), 403)
     return check_api_key
 
 
 # Retrieve the emotlies list.
-@emotly_controller.route('/api/1.0/emotlies', methods=['GET'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies',
+                         methods=['GET'])
 def list_emotlies():
     try:
         emotlies = Emotly.objects.all()
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
     # At the moment serialize mood, creation date of the mood
     # and user nickname.
     return make_response(jsonify({'emotlies':
@@ -61,21 +61,23 @@ def list_emotlies():
 
 
 # Retrieve the current user's emotlies list.
-@emotly_controller.route('/api/1.0/emotlies/own', methods=['GET'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/own',
+                         methods=['GET'])
 @require_token
 def list_own_emotlies(**kwargs):
     try:
         user = kwargs['user']
         emotlies = Emotly.objects(user=user.id).only("mood", "created_at")
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
     return make_response(jsonify({'emotlies':
                                   [e.serialize() for e in emotlies]}), 200)
 
 
 # Create a new emotly for the current user.
-@emotly_controller.route('/api/1.0/emotlies/new', methods=['POST'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/new',
+                         methods=['POST'])
 @require_token
 def post_new_emotly(**kwargs):
     try:
@@ -85,33 +87,34 @@ def post_new_emotly(**kwargs):
         emotly.user = user
         emotly.save()
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
     return make_response(jsonify({'emotly': emotly.serialize()}), 200)
 
 
 # Retrieve a specific emotly.
-@emotly_controller.route('/api/1.0/emotlies/show/<emotly_id>', methods=['GET'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX +
+                         'emotlies/show/<emotly_id>', methods=['GET'])
 @require_token
 def get_emotly(emotly_id, **kwargs):
     try:
         emotly = Emotly.objects.only("mood", "created_at").get(id=emotly_id)
     except DoesNotExist:
-        return make_response(jsonify({'message': 'Emotly error.'}), 404)
+        return make_response(jsonify({'message':
+                             CONSTANTS.EMOTLY_DOES_NOT_EXIST}), 404)
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
     return make_response(jsonify({'emotly': emotly.serialize()}), 200)
 
 
 # Retrieve the list of moods.
-@emotly_controller.route('/api/1.0/moods', methods=['GET'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'moods', methods=['GET'])
 def list_moods():
     try:
-        formatted_mood = [{"id": k, "value": v}
-                          for k, v in MOOD.items()]
+        formatted_mood = [{"id": k, "value": v} for k, v in MOOD.items()]
         moods = make_response(jsonify({'moods': formatted_mood}), 200)
     except Exception:
-        return make_response(jsonify({'message': 'Internal server error'}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
     return moods

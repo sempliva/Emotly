@@ -6,6 +6,7 @@ DEED
 from emotly import db
 import datetime
 import bcrypt
+from emotly import constants as CONSTANTS
 
 
 class Token(db.EmbeddedDocument):
@@ -49,7 +50,9 @@ class Emotly(db.Document):
     def serialize(self):
         if self.user:
             return {'mood': MOOD[self.mood],
-                    'created_at': self.created_at.isoformat(),
+                    'created_at': self.created_at
+                    .strftime(CONSTANTS.DATE_FORMAT),
                     'user': self.user.serialize()}
         return {'mood': MOOD[self.mood],
-                'created_at': self.created_at.isoformat()}
+                'created_at': self.created_at
+                .strftime(CONSTANTS.DATE_FORMAT)}
