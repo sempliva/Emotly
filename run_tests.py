@@ -633,7 +633,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         m = {'mood': 1}
         token = generate_jwt_token(u)
         headers = {'content-type': 'application/json',
-                   'auth_token': token}
+                   'X-Emotly-Auth-Token': token}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 200)
@@ -654,7 +654,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         emotly.user = u
         emotly.save()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
 
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
                           headers=headers)
@@ -697,7 +697,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         emotly.user = u
         emotly.save()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
 
         rv = self.app.get("/api/1.0/emotlies/show/" + str(emotly.id),
                           headers=headers)
@@ -716,7 +716,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  salt="salt")
         u.save()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
                           headers=headers)
         self.assertEqual(rv.status_code, 200)
@@ -734,7 +734,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         emotly.save()
         emotly.delete()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
                           str(emotly.id), headers=headers)
         self.assertEqual(rv.status_code, 404)
@@ -747,7 +747,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  last_login=datetime.datetime.now(),
                  salt="salt")
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/user_emotlies",
                           headers=headers)
         self.assertEqual(rv.status_code, 404)
@@ -759,7 +759,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  last_login=datetime.datetime.now(),
                  salt="salt")
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
 
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
                           str(len(MOOD)), headers=headers)
@@ -773,7 +773,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  salt="salt")
         m = {'mood': 1}
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 404)
@@ -788,7 +788,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
         u.save()
         m = {'mood': 1}
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 403)
@@ -801,7 +801,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  salt="salt")
         u.save()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
 
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/own",
                           headers=headers)
@@ -815,7 +815,7 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                  salt="salt")
         u.save()
         headers = {'content-type': 'application/json',
-                   'auth_token': generate_jwt_token(u)}
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "emotlies/show/" +
                           str(len(MOOD)), headers=headers)
         self.assertEqual(rv.status_code, 403)

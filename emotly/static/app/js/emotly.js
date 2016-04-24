@@ -7,7 +7,8 @@
  * DEED
  */
 
-var emotly_jwt = null; // JWT global.
+var emotly_jwt = null;    // JWT global.
+var emotly_allMoods = null;  // Moods global.
 
 $(document).ready(function() {
   /*
@@ -28,7 +29,10 @@ $(document).ready(function() {
       alert("Your browser ain't support ServiceWorkers yet.");
   }
 
-  $('#navbrandtext').text('Update: login working, pls test.');
+  // Customize the template for the PWA.
+  $('#navbrandtext').text('Update: new emotly working!');
+  $('#emotlybrand').attr('href', '/static/app/pwa');
+  $('.liLogin').show();
 
   // Check for LocalStorage support.
   if (!window.localStorage) {
@@ -55,7 +59,7 @@ $(document).ready(function() {
           var ulemotlies = $('#ulemotlies');
           n = single_emotly.user.nickname;
           m = single_emotly.mood;
-          ulemotlies.append("<li class='list-group-item'>" + n +
+          ulemotlies.prepend("<li class='list-group-item'>" + n +
                             "<span class='badge'>" + m + "</span></li>");
         });
       }).catch(function() {
@@ -73,13 +77,29 @@ $(document).ready(function() {
   // localStorage.removeItem('emotly_jwt');
   emotly_jwt = JSON.parse(localStorage.getItem('emotly_jwt'));
   if (emotly_jwt != null) {
-    $('#liLogin').hide();
-    $('#liLogout').show();
+    $('.liLogin').hide();
+    $('.liLogout').show();
     $('#navbrandtext').text('Logged as ' +
                             emotly_jwt.payload.nickname + '.');
   }
 
+  // Update the global list of all the available moods.
+  emotlyGetAllMoods().then(function(all_moods) {
+    var ulmoods = $('#ulmoods');
+    var emotly_allMoods = all_moods.moods;
+    emotly_allMoods.forEach(function(mood) {
+      m = mood.value;
+      i = mood.id;
+      ulmoods.append(`<li class='list-group-item'
+                      emotly-data-mood-id='${i}'>${m}</li>`);
+    });
+  }).catch(function(error) {
+    setProgressBarStatus('danger');
+    showAlert('danger', 'Error while fetching the moods' + error, 7);
+  })
+
   $('#alogout').click(logout_button_pressed);
+  $('#ulmoods').click(li_mood_selected);
 });
 
 /*
@@ -88,8 +108,8 @@ $(document).ready(function() {
 function logout_button_pressed() {
   $('#navbar').collapse('hide');
   localStorage.removeItem('emotly_jwt');
-  $('#liLogin').show();
-  $('#liLogout').hide();
+  $('.liLogin').show();
+  $('.liLogout').hide();
   showAlert('success', 'Logged out');
   emotly_jwt = null;
   $('#navbrandtext').text('');
@@ -112,30 +132,90 @@ function login_button_pressed() {
     localStorage.setItem('emotly_jwt', JSON.stringify(emotly_jwt));
     setProgressBarStatus('success');
     showAlert('success', 'Logged in!');
-    $('#liLogin').hide();
-    $('#liLogout').show();
+    $('.liLogin').hide();
+    $('.liLogout').show();
     $('#navbrandtext').text('Logged as ' +
                             emotly_jwt.payload.nickname + '.');
   }).catch(function(jwt_error) {
     setProgressBarStatus('danger');
     showAlert('danger', 'Login failed ' + jwt_error);
-    $('#liLogin').show();
-    $('#liLogout').hide();
+    $('.liLogin').show();
+    $('.liLogout').hide();
   })
-
-  //       fetch('/api/1.0/emotlies/new', {
-  //         method: 'post',
-  //         headers: {
-  //           "Content-type": "application/json; charset=UTF-8",
-  //           "auth_token": JSON.stringify(global_token)
-  //         },
-  //         body: JSON.stringify({
-  //           mood: 2,
-  //         })
-  //       }).then(function(newemotlyresponse) {
-  //         showAlert('succes', 'NEW EMOTLY STATUS CODE: ' + newemotlyresponse.status);
-  //       });
 }
+
+/*
+ * This handler gets called when the user taps on one of the moods to post a
+ * new Emotly.
+ */
+function li_mood_selected(e) {
+  setProgressBarStatus('warning', true);
+  $('#newEmotlyModal').modal('toggle');
+  $('#navbar').collapse('hide');
+  var n = emotly_jwt.payload.nickname;
+  var ulemotlies = $('#ulemotlies');
+  var linewemotly = $("<li class='list-group-item\
+                    list-group-item-warning'><cite>posting...</cite></li>");
+  $(ulemotlies).prepend(linewemotly);
+
+  // Get the relevant MoodID from the targetElement.
+  var mid = $(e.target).attr('emotly-data-mood-id');
+
+  emotlyNewEmotly(emotly_jwt, mid).then(function(posted_mood) {
+    setProgressBarStatus('success');
+    linewemotly.removeClass('list-group-item-warning');
+    linewemotly.html(`${n}<span class='badge'>${posted_mood}</span></li>`);
+  }).catch(function(err) {
+    setProgressBarStatus('danger');
+    showAlert('danger', err);
+    linewemotly.remove();
+  });
+}
+
+/*
+ * This function returns a Promise with the posted Emotly/mood.
+ *
+ * Parameters:
+ *  jwt: JSON WebToken
+ *  mood_id: the numeric ID representing the mood to post
+ */
+function emotlyNewEmotly(jwt, mood_id) {
+  return new Promise(function(resolve, reject) {
+    fetch('/api/1.0/emotlies/new', {
+      method: 'post',
+      headers: {
+        'Content-type': 'application/json; charset=utf-8',
+        'X-EMOTLY': 'JSONAPI', /* Pass-through for the Emotly ServiceWorker. */
+        'X-Emotly-Auth-Token': JSON.stringify(jwt)
+      },
+      body: JSON.stringify({ mood: mood_id })
+    }).then(function(raw_response) { /* Fetch success. */
+      if (raw_response.status == 200) {
+        raw_response.json().then(function(json_response) { /* response.json()
+                                                              success. */
+          /* If there is a mood the response should be ok. */
+          if (json_response.emotly.mood) {
+            /* Fulfill the promise with the mood. */
+            resolve(json_response.emotly.mood);
+          } else { /* The JSON response is OK but it's not something
+                      we were expecting. */
+            reject(Error('Emotly Error: invalid response'));
+          }
+        })
+        .catch(function(json_error) { /* response.json() error. */
+          reject(Error('Emotly Error: invalid JSON'));
+        })
+      } else { /* Fetch response is not 200. */
+        reject(Error(`Emotly Error: invalid return status\
+                      (${raw_response.status})`));
+      }
+    })
+    .catch(function(fetch_error) {  /* Fetch error. */
+      reject(Error(`Emotly Error: fetch/networking error (${fetch.error})`));
+    })
+  } /* new Promise body. */
+); /* Promise() Arguments. */
+} /* emotlyNewEmotly() */
 
 /*
  * This function returns a Promise with the JWT obtained by the Emotly Service.
@@ -181,6 +261,34 @@ function emotlyLogin(login, password) {
 } /* emotlyLogin() */
 
 /*
+ * This function returns a Promise with all the moods currently supported by
+ * the Emotly service.
+ */
+function emotlyGetAllMoods() {
+  return new Promise(function(resolve, reject) {
+    fetch('/api/1.0/moods', { headers: { 'X-EMOTLY': 'JSONAPI' }})
+    .then(function(raw_response) { /* Fetch success. */
+      if (raw_response.status == 200) {
+        raw_response.json().then(function(json_response) { /* response.json()
+                                                              success. */
+          /* We resolve the promise with everything we got. */
+          resolve(json_response);
+        }).catch(function(json_error) {  /* response.json() error. */
+          reject(Error(`Moods Error: invalid JSON (${json_error})`));
+        })
+      } else { /* Fetch response is not 200. */
+        reject(Error(`Moods Error: invalid return\
+                      status (${raw_response.status})`));
+      }
+    })
+    .catch(function(fetch_error) { /* Fetch error. */
+      reject(Error(`Moods Error: fetch/networking error (${fetch.error})`));
+    })
+  } /* new Promise body. */
+); /* Promise() Arguments. */
+} /* emotlyGetAllMoods() */
+
+/*
  * Show a message box in the top of the drawing area.
  * 'Type' should be one of: success, info, warning, danger.
  * 'Timeout' is in seconds.
@@ -212,6 +320,7 @@ function setProgressBarStatus(status, active = false) {
   if (active)
     pbar.addClass('active progress-bar-striped');
 }
+
 
 /*
  * This wraps a promise to send/receive messages from the SW.
