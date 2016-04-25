@@ -104,7 +104,7 @@ function login_button_pressed() {
   $('#navbar').collapse('hide');
 
   // Let's try to login...
-  var n = $('#emailinput').val();
+  var n = $('#useridinput').val();
   var p = $('#passwordinput').val();
 
   emotlyLogin(n, p).then(function(jwt_from_emotly) {
@@ -152,7 +152,7 @@ function emotlyLogin(login, password) {
         'Content-type': 'application/json; charset=utf-8',
         'X-EMOTLY': 'JSONAPI' /* Pass-through for the Emotly ServiceWorker. */
       },
-      body: JSON.stringify({ email: login, password: password})
+      body: JSON.stringify({ user_id: login, password: password})
     }).then(function(raw_response) { /* Fetch success. */
       if (raw_response.status == 200) {
         raw_response.json().then(function(json_response) { /* response.json()
