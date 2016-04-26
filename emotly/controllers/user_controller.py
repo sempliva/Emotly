@@ -30,9 +30,9 @@ def login():
         # Retrieve json data and user data.
         data = json.loads(request.data.decode('utf-8'))
         if '@' in data['user_id']:
-            user = User.objects.get(email=data['user_id'])
+            user = User.objects.get(email__iexact=data['user_id'])
         else:
-            user = User.objects.get(nickname=data['user_id'])
+            user = User.objects.get(nickname__iexact=data['user_id'])
     except DoesNotExist:
         # User does not exist.
         return make_response(jsonify({'message':
@@ -111,6 +111,8 @@ def register_user(req):
         req_pwd = req.form['inputPassword'].encode('utf-8')
         req_email = req.form['inputEmail']
 
+    # Normalize email.
+    req_email = req_email.lower()
     salt = get_salt()
     hash_pwd = hash_password(req_pwd, salt)
     user = User(nickname=req_nickname, password=hash_pwd, salt=salt,
