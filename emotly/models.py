@@ -37,7 +37,8 @@ class User(db.Document):
     def serialize(self):
         return {'nickname': self.nickname}
 
-MOOD = {1: "sad", 2: "happy", 3: "proud"}
+MOOD = {1: "sad", 2: "happy", 3: "proud", 4: "tired", 5: "hopeful",
+        6: "in love", 7: "surprised", 8: "fascinated", 9: "amazed"}
 
 
 class Emotly(db.Document):

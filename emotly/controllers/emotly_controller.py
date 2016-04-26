@@ -24,7 +24,7 @@ emotly_controller = Blueprint('emotly_controller', __name__)
 def require_token(api_method):
     @wraps(api_method)
     def check_api_key(*args, **kwargs):
-        auth_token = request.headers.get('auth_token')
+        auth_token = request.headers.get('X-Emotly-Auth-Token')
         if auth_token and verify_jwt_token(auth_token):
             try:
                 user = get_user_from_jwt_token(auth_token)

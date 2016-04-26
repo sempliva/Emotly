@@ -67,6 +67,10 @@ body {
   display: none;
 }
 
-#liLogout {
+li.liLogin {
+  display: none;
+}
+
+li.liLogout {
   display: none;
 }
