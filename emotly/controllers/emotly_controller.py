@@ -4,7 +4,7 @@ Emotly
 DEED
 """
 import json
-from flask import Blueprint, request, flash, jsonify, make_response
+from flask import Blueprint, request, flash
 from emotly import constants as CONSTANTS
 from flask.ext.mongoengine import MongoEngine
 from functools import wraps
@@ -12,7 +12,7 @@ from emotly.models import User, Emotly, MOOD
 from mongoengine import DoesNotExist
 from emotly.controllers.user_controller import get_user_from_jwt_token
 from emotly.controllers.user_controller import is_user_confirmed
-from emotly.utils import verify_jwt_token
+from emotly.utils import verify_jwt_token, valid_json, response_handler
 
 
 # Emotly Controller
@@ -34,14 +34,12 @@ def require_token(api_method):
                     # Pass user as in the  kwargs to the original fn.
                     kwargs['user'] = user
                     return api_method(*args, **kwargs)
-                return make_response(jsonify(
-                    {'message': CONSTANTS.USER_NOT_CONFIRMED}), 403)
+                return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
             # If does not exist return 404.
             except DoesNotExist:
-                return make_response(jsonify({'message':
-                                     CONSTANTS.USER_DOES_NOT_EXIST}), 404)
+                return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
         # If the request has no user token or it is not valid 403.
-        return make_response(jsonify({'message': CONSTANTS.UNAUTHORIZED}), 403)
+        return response_handler(403, CONSTANTS.UNAUTHORIZED)
     return check_api_key
 
 
@@ -52,12 +50,10 @@ def list_emotlies():
     try:
         emotlies = Emotly.objects.all().order_by('-created_at')
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     # At the moment serialize mood, creation date of the mood
     # and user nickname.
-    return make_response(jsonify({'emotlies':
-                                  [e.serialize() for e in emotlies]}), 200)
+    return response_handler(200, [e.serialize() for e in emotlies], 'emotlies')
 
 
 # Retrieve the current user's emotlies list, desc ordered by creation date.
@@ -70,27 +66,28 @@ def list_own_emotlies(**kwargs):
         emotlies = Emotly.objects(user=user.id).only("mood", "created_at").\
             order_by('-created_at')
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
-    return make_response(jsonify({'emotlies':
-                                  [e.serialize() for e in emotlies]}), 200)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+    return response_handler(200, [e.serialize() for e in emotlies], 'emotlies')
 
 
 # Create a new emotly for the current user.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/new',
                          methods=['POST'])
 @require_token
+@valid_json
 def post_new_emotly(**kwargs):
     try:
         user = kwargs['user']
-        data = json.loads(request.data.decode('utf-8'))
+        data = kwargs['data']
+        if 'mood' not in data:
+            return response_handler(500, CONSTANTS.INVALID_JSON_DATA)
+
         emotly = Emotly(mood=data['mood'])
         emotly.user = user
         emotly.save()
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
-    return make_response(jsonify({'emotly': emotly.serialize()}), 200)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+    return response_handler(200, emotly.serialize(), 'emotly')
 
 
 # Retrieve a specific emotly.
@@ -101,12 +98,10 @@ def get_emotly(emotly_id, **kwargs):
     try:
         emotly = Emotly.objects.only("mood", "created_at").get(id=emotly_id)
     except DoesNotExist:
-        return make_response(jsonify({'message':
-                             CONSTANTS.EMOTLY_DOES_NOT_EXIST}), 404)
+        return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
-    return make_response(jsonify({'emotly': emotly.serialize()}), 200)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+    return response_handler(200, emotly.serialize(), 'emotly')
 
 
 # Retrieve the list of moods.
@@ -114,8 +109,7 @@ def get_emotly(emotly_id, **kwargs):
 def list_moods():
     try:
         formatted_mood = [{"id": k, "value": v} for k, v in MOOD.items()]
-        moods = make_response(jsonify({'moods': formatted_mood}), 200)
+        moods = response_handler(200, formatted_mood, 'moods')
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return moods

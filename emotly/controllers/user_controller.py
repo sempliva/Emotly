@@ -7,13 +7,14 @@ from emotly import constants as CONSTANTS
 import datetime
 import json
 from flask import Blueprint, request, render_template
-from flask import flash, jsonify, make_response
+from flask import flash, make_response
 from emotly.models import User, Token
 from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 from emotly.utils import get_salt, hash_password
 from emotly.utils import generate_confirmation_token
 from emotly.utils import send_email_confirmation
 from emotly.utils import generate_jwt_token
+from emotly.utils import response_handler
 
 # User Controller
 user_controller = Blueprint('user_controller', __name__)
@@ -24,8 +25,7 @@ user_controller = Blueprint('user_controller', __name__)
 @user_controller.route(CONSTANTS.REST_API_PREFIX + "login", methods=["POST"])
 def login():
     if not request.is_secure:
-        return make_response(jsonify({'message':
-                             CONSTANTS.NOT_HTTPS_REQUEST}), 403)
+        return response_handler(403, CONSTANTS.NOT_HTTPS_REQUEST)
     try:
         # Retrieve json data and user data.
         data = json.loads(request.data.decode('utf-8'))
@@ -35,29 +35,23 @@ def login():
             user = User.objects.get(nickname=data['user_id'])
     except DoesNotExist:
         # User does not exist.
-        return make_response(jsonify({'message':
-                             CONSTANTS.USER_DOES_NOT_EXIST}), 404)
+        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
     except Exception:
         # No data sent by the client or there
         # was an error queryng the database.
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     if not user.confirmed_email:
         # User email not confirmed yet.
-        return make_response(jsonify({'message':
-                             CONSTANTS.USER_NOT_CONFIRMED}), 403)
+        return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
     if User.verify_password(user, data['password'].encode('utf-8')):
         try:
             user.update(last_login=datetime.datetime.now())
         except Exception:
             # Error updating the user data.
-            return make_response(
-                jsonify({'message': CONSTANTS.INTERNAL_SERVER_ERROR}),
-                500)
+            return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
         # Generate and send JWT
         return make_response(generate_jwt_token(user), 200)
-    return make_response(jsonify({'message':
-                         CONSTANTS.UNAUTHORIZED}), 403)
+    return response_handler(403, CONSTANTS.UNAUTHORIZED)
 
 
 @user_controller.route("/signup", methods=["GET", "POST"])
@@ -83,18 +77,14 @@ def signup():
 def signup_api():
     try:
         register_user(request)
-        return make_response(jsonify({'message':
-                             CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL}),
-                             200)
+        return response_handler(200,
+                                CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL)
     except ValidationError:
-        return make_response(jsonify({'message':
-                             CONSTANTS.REGISTRAION_ERROR_INVALID_DATA}), 400)
+        return response_handler(400, CONSTANTS.REGISTRAION_ERROR_INVALID_DATA)
     except NotUniqueError:
-        return make_response(jsonify({'message':
-                             CONSTANTS.REGISTRAION_ERROR_USER_EXISTS}), 400)
+        return response_handler(400, CONSTANTS.REGISTRAION_ERROR_USER_EXISTS)
     except Exception:
-        return make_response(jsonify({'message':
-                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
 
 
 # Use the post params to generate salt, hash password,

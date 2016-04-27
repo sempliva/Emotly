@@ -13,6 +13,8 @@ import datetime
 from postmark import PMMail
 from emotly import app
 from emotly import constants as CONSTANTS
+from functools import wraps
+from flask import make_response, request, jsonify
 
 
 # Create the salt for the user registration.
@@ -95,3 +97,26 @@ def sign_jwt(header, payload):
 
     signature = base64.b64encode(signature).decode("utf-8")
     return signature
+
+
+# Verify that a request has valid json data.
+def valid_json(api_method):
+    @wraps(api_method)
+    def check_valid_json(*args, **kwargs):
+        try:
+            data = request.data.decode("utf-8")
+            if not data:
+                return response_handler(500, CONSTANTS.INVALID_JSON_DATA)
+            data = json.loads(data)
+            kwargs['data'] = data
+        except Exception:
+            return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+        return api_method(*args, **kwargs)
+    return check_valid_json
+
+
+# App error and response handler.
+def response_handler(code, value, message=None):
+    if message is None:
+        message = "message"
+    return make_response(jsonify({message: value}), code)
