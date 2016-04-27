@@ -45,12 +45,12 @@ def require_token(api_method):
     return check_api_key
 
 
-# Retrieve the emotlies list.
+# Retrieve the emotlies list, desc ordered by creation date.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies',
                          methods=['GET'])
 def list_emotlies():
     try:
-        emotlies = Emotly.objects.all()
+        emotlies = Emotly.objects.all().order_by('-created_at')
     except Exception:
         return make_response(jsonify({'message':
                              CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
@@ -60,14 +60,15 @@ def list_emotlies():
                                   [e.serialize() for e in emotlies]}), 200)
 
 
-# Retrieve the current user's emotlies list.
+# Retrieve the current user's emotlies list, desc ordered by creation date.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/own',
                          methods=['GET'])
 @require_token
 def list_own_emotlies(**kwargs):
     try:
         user = kwargs['user']
-        emotlies = Emotly.objects(user=user.id).only("mood", "created_at")
+        emotlies = Emotly.objects(user=user.id).only("mood", "created_at").\
+            order_by('-created_at')
     except Exception:
         return make_response(jsonify({'message':
                              CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
