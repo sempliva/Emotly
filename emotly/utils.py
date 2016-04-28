@@ -84,11 +84,18 @@ def verify_jwt_token(token):
 
 
 # Return a cryptografic hash value used to sign
-# the given message ( header + payload).
+# the given message (header + payload).
 def sign_jwt(header, payload):
-    str_message = str(header) + str(payload)
-    # user a cryptographic hash algorithm to sing header and payload
-    # this "ensure" that the token has been generated from our backend
+    # Sort and convert the dictionary in string.
+    # This is necessary since Python dictionaries do not guarantee any
+    # particular order.
+    str_message = ''.join('{}:{} '.format(val[0], val[1])
+                          for val in sorted(header.items()))
+    str_message = str_message.join('{}:{} '.format(val[0], val[1])
+                                   for val in sorted(payload.items()))
+
+    # Use a cryptographic hash algorithm to sign the header and the payload;
+    # this "ensure" that the token is legitimately from us.
     signature = hmac.new(app.config["HMAC_SECRET_KEY"].encode("utf-8"),
                          str_message.encode("utf-8"),
                          hashlib.sha256).digest()
