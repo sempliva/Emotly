@@ -79,6 +79,15 @@ class EmotlyUserRegistrationTestCase(unittest.TestCase):
         assert (CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL).\
             encode('utf-8') in rv.data
 
+    def test_signup_email_is_lower(self):
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="nicknametest12",
+                               inputEmail="Email1@EMAILTEST.com",
+                               inputPassword="password"))
+        user = User.objects.get(nickname="nicknametest12")
+        self.assertEqual(user.email, "Email1@EMAILTEST.com".lower())
+
     def test_signup_incomplete_request(self):
         rv = self.app.post('/signup',
                            data=dict(
@@ -441,6 +450,70 @@ class EmotlyLoginTestCases(unittest.TestCase):
         u.save()
 
         user_data = {'user_id': 'testnickname',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_nickname_case_insensitive_success(self):
+        salt = get_salt()
+        u = User(nickname='testnickname',
+                 email='email2@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'TESTNICKname',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_nickname_case_insensitive2_success(self):
+        salt = get_salt()
+        u = User(nickname='TESTnickname',
+                 email='email2@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'testnickname',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_email_case_insensitive_success(self):
+        salt = get_salt()
+        u = User(nickname='test12345678910',
+                 email='Email@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'email@emailtest.com',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_email_case_insensitive2_success(self):
+        salt = get_salt()
+        u = User(nickname='test12345678910',
+                 email='email@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'EMail@emailTEST.com',
                      'password': 'password'}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
                            data=json.dumps(user_data),
