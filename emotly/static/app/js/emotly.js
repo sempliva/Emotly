@@ -30,7 +30,7 @@ $(document).ready(function() {
   }
 
   // Customize the template for the PWA.
-  $('#navbrandtext').text('App has been fixed.');
+  $('#navbrandtext').text('App has been (double) fixed.');
   $('#emotlybrand').attr('href', '/static/app/pwa');
   $('.liLogin').show();
 
