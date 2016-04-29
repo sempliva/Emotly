@@ -4,7 +4,7 @@
 DATE_FORMAT = "%Y:%m:%d %H:%M:%S"
 
 # Rest API prefix
-REST_API_PREFIX = "/api/1.0/"
+REST_API_PREFIX = "/api/1.0"  # No trailing slash, please.
 
 # Rest API response content.
 USER_NOT_CONFIRMED = 'User error.'

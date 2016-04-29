@@ -46,7 +46,7 @@ def require_token(api_method):
 
 
 # Retrieve the emotlies list.
-@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies',
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies',
                          methods=['GET'])
 def list_emotlies():
     try:
@@ -61,7 +61,7 @@ def list_emotlies():
 
 
 # Retrieve the current user's emotlies list.
-@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/own',
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies/own',
                          methods=['GET'])
 @require_token
 def list_own_emotlies(**kwargs):
@@ -76,7 +76,7 @@ def list_own_emotlies(**kwargs):
 
 
 # Create a new emotly for the current user.
-@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'emotlies/new',
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies/new',
                          methods=['POST'])
 @require_token
 def post_new_emotly(**kwargs):
@@ -94,7 +94,7 @@ def post_new_emotly(**kwargs):
 
 # Retrieve a specific emotly.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX +
-                         'emotlies/show/<emotly_id>', methods=['GET'])
+                         '/emotlies/show/<emotly_id>', methods=['GET'])
 @require_token
 def get_emotly(emotly_id, **kwargs):
     try:
@@ -109,7 +109,7 @@ def get_emotly(emotly_id, **kwargs):
 
 
 # Retrieve the list of moods.
-@emotly_controller.route(CONSTANTS.REST_API_PREFIX + 'moods', methods=['GET'])
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/moods', methods=['GET'])
 def list_moods():
     try:
         formatted_mood = [{"id": k, "value": v} for k, v in MOOD.items()]

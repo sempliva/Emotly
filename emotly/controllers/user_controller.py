@@ -21,7 +21,7 @@ user_controller = Blueprint('user_controller', __name__)
 
 # Verify user credential and return a JWT Token if
 # the user has access to the system.
-@user_controller.route(CONSTANTS.REST_API_PREFIX + "login", methods=["POST"])
+@user_controller.route(CONSTANTS.REST_API_PREFIX + "/login", methods=["POST"])
 def login():
     if not request.is_secure:
         return make_response(jsonify({'message':
@@ -76,24 +76,25 @@ def signup():
     return render_template("page-home.html")
 
 
-# Registration endpoint. It allow the user to create an account.
-# Accept json data containing nickname, email and passowrd.
-# TODO: Add security check ( number of call? )
-@user_controller.route(CONSTANTS.REST_API_PREFIX+"/signup", methods=["POST"])
+# Registration endpoint. It allows the user to create an account.
+# Accepts JSON data containing nickname, email and password.
+# TODO: Add security check (number of call?).
+@user_controller.route(CONSTANTS.REST_API_PREFIX + "/signup", methods=["POST"])
 def signup_api():
     try:
         register_user(request)
-        return make_response(jsonify({'message': CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL}),
+        return make_response(jsonify({'message':
+                             CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL}),
                              200)
     except ValidationError:
-        return make_response(jsonify({'message': CONSTANTS.REGISTRAION_ERROR_INVALID_DATA}),
-                             400)
+        return make_response(jsonify({'message':
+                             CONSTANTS.REGISTRAION_ERROR_INVALID_DATA}), 400)
     except NotUniqueError:
-        return make_response(jsonify({'message': CONSTANTS.REGISTRAION_ERROR_USER_EXISTS}),
-                             400)
+        return make_response(jsonify({'message':
+                             CONSTANTS.REGISTRAION_ERROR_USER_EXISTS}), 400)
     except Exception:
-        return make_response(jsonify({'message': CONSTANTS.INTERNAL_SERVER_ERROR}),
-                             500)
+        return make_response(jsonify({'message':
+                             CONSTANTS.INTERNAL_SERVER_ERROR}), 500)
 
 
 # Use the post params to generate salt, hash password,
