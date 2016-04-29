@@ -5,12 +5,12 @@
  */
 
 function L(msg) {
-    console.log('Emotly SW: ' + msg);
+    console.log(`Emotly SW: ${msg}`);
 }
 
 // EMOTLY_CACHE_NAME should also be used in the UI
 // to identify the version.
-var EMOTLY_CACHE_NAME = "pwa-dev-client-v5";
+var EMOTLY_CACHE_NAME = "pwa-dev-client-20160428-24";
 var EMOTLY_CACHE_FLES = [
     '/static/app/pwa', '/static/app/ext/bootstrap/css/bootstrap.min.css',
     '/static/app/css/emotly.css', '/static/app/ext/js/jquery/jquery-1.12.2.min.js',
@@ -22,7 +22,7 @@ var EMOTLY_CACHE_FLES = [
     '/static/app/ext/bootstrap/fonts/glyphicons-halflings-regular.woff2'
 ];
 
-L('booted up');
+L(`booted up, cache version ${EMOTLY_CACHE_NAME})`);
 
 // Install handler.
 self.addEventListener('install', function(e) {
@@ -58,29 +58,29 @@ self.addEventListener('activate', function(event) {
 
 // Fetch handler.
 this.addEventListener('fetch', function(event) {
-    L('fetch');
+  L('fetch');
 
-    // This is a pass-through for every Request that has an X-EMOTLY header.
-    // X-EMOTLY requests should be the ones coming from emotly.js.
-    //
-    // TODO: This might be a security issue given the open file...:)
-    if (event.request.headers.get('X-EMOTLY')) {
-      return fetch(event.request);
-    }
+  // This is a pass-through for every Request that has an X-EMOTLY header.
+  // X-EMOTLY requests should be the ones coming from emotly.js.
+  //
+  // TODO: This might be a security issue given the open file...:)
+  if (event.request.headers.get('X-EMOTLY')) {
+    return fetch(event.request);
+  }
 
-    event.respondWith(caches.match(event.request).catch(function() {
-        return fetch(event.request); })
-    .then(function(r) {
-        response = r;
-        caches.open(EMOTLY_CACHE_NAME).then(function(c) {
-            c.put(event.request, response);
-        });
-        return response.clone(); })
-    .catch(function() {
-        // We return the Sloth here because we wanna fail with
-        // something sweet.
-        return caches.match('/static/app/img/sloth.jpg');
-    }));
+  var response;
+  event.respondWith(caches.match(event.request).catch(function() {
+    return fetch(event.request);
+  }).then(function(r) {
+    response = r;
+    caches.open(EMOTLY_CACHE_NAME).then(function(cache) {
+      cache.put(event.request, response);
+    });
+    return response.clone();
+  }).catch(function() {
+    console.log(`!!! Returning the sloth for URL: ${response.url}`);
+    return caches.match('/static/app/img/sloth.jpg');
+  }));
 });
 
 // self.addEventListener('message', function handler (event) {

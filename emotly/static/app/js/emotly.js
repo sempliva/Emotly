@@ -24,13 +24,13 @@ $(document).ready(function() {
       }).then(function () {
         console.log('ServiceWorker is READY!');
       }).catch(function(err) {
-          console.log("Error in registering the SW: ", err);
+        console.log("Error in registering the SW: ", err);
   });} else {
       alert("Your browser ain't support ServiceWorkers yet.");
   }
 
   // Customize the template for the PWA.
-  $('#navbrandtext').text('Update: new emotly working!');
+  $('#navbrandtext').text('App has been fixed.');
   $('#emotlybrand').attr('href', '/static/app/pwa');
   $('.liLogin').show();
 
