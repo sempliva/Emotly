@@ -10,7 +10,7 @@ function L(msg) {
 
 // EMOTLY_CACHE_NAME should also be used in the UI
 // to identify the version.
-var EMOTLY_CACHE_NAME = "pwa-dev-client-20160428-24";
+var EMOTLY_CACHE_NAME = "pwa-dev-client-20160428-30";
 var EMOTLY_CACHE_FLES = [
     '/static/app/pwa', '/static/app/ext/bootstrap/css/bootstrap.min.css',
     '/static/app/css/emotly.css', '/static/app/ext/js/jquery/jquery-1.12.2.min.js',
@@ -65,7 +65,8 @@ this.addEventListener('fetch', function(event) {
   //
   // TODO: This might be a security issue given the open file...:)
   if (event.request.headers.get('X-EMOTLY')) {
-    return fetch(event.request);
+    L(`fetch pass-through for ${event.request.url}`);
+    return;
   }
 
   var response;
