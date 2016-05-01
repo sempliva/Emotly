@@ -12,7 +12,7 @@ from emotly.models import User, Token
 from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 from emotly.utils import get_salt, hash_password
 from emotly.utils import generate_confirmation_token
-from emotly.utils import send_email_confirmation
+from emotly.utils import send_email_confirmation, send_welcome_email
 from emotly.utils import generate_jwt_token
 from emotly.utils import response_handler
 
@@ -115,7 +115,8 @@ def register_user(req):
 
 
 # This route is used to confirm the user through the
-# confirmation token received by email.
+# confirmation token received by email and send a welcome email
+# with the link to the progressive web app.
 @user_controller.route("/confirm_email/<confirmation_token>", methods=['GET'])
 def confirm_email(confirmation_token):
     try:
@@ -123,6 +124,8 @@ def confirm_email(confirmation_token):
         flash(CONSTANTS.EMAIL_CONFIRMED)
     except DoesNotExist as e:
         flash(CONSTANTS.ERROR_IN_CONFIRMING_EMAIL)
+    except Exception:
+        flash(CONSTANTS.INTERNAL_SERVER_ERROR, 'Error')
     return render_template("page-home.html")
 
 
@@ -135,6 +138,7 @@ def confirm_registration_email(confirmation_token):
     User.objects.get(pk=user.id).update(confirmed_email=True,
                                         unset__confirmation_token=1,
                                         update_at=datetime.datetime.now())
+    send_welcome_email(user.email, CONSTANTS.APP_LINK)
 
 
 # Return the user from the jwt token
