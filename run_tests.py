@@ -709,6 +709,52 @@ class EmotlyRESTAPITestCase(unittest.TestCase):
                            headers=headers, data=json.dumps(m))
         self.assertEqual(rv.status_code, 200)
 
+    def test_post_emotly_json_data_not_contains_mood(self):
+        u = User(nickname='testpost1',
+                 email='test_post_emotly1@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        m = {'this_is_not_mood': 1}
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
+                           headers=headers, data=json.dumps(m))
+        assert (CONSTANTS.INVALID_JSON_DATA).encode('utf-8') in rv.data
+
+    def test_post_emotly_json_data_not_valid(self):
+        u = User(nickname='testpost2',
+                 email='test_post_emotly2@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
+                           headers=headers, data="this is not json")
+        assert (CONSTANTS.INTERNAL_SERVER_ERROR).encode('utf-8') in rv.data
+
+    def test_post_emotly_no_json_data(self):
+        u = User(nickname='testpost3',
+                 email='test_post_emotly3@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "emotlies/new",
+                           headers=headers)
+        assert (CONSTANTS.INVALID_JSON_DATA).encode('utf-8') in rv.data
+
     def test_get_own_emotlies(self):
         u = User(nickname='testget',
                  email='test_get_emotlies@example.com',

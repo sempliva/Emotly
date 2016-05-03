@@ -15,6 +15,7 @@ EMOTLY_DOES_NOT_EXIST = 'Emotly error.'
 UNAUTHORIZED = 'Unauthorized access.'
 INTERNAL_SERVER_ERROR = 'Internal server error.'
 NOT_HTTPS_REQUEST = 'Bad request.'
+INVALID_JSON_DATA = 'Bad request data.'
 
 
 # Success Flash messages.
