@@ -5,6 +5,7 @@ APP_LINK = "https://emotly.herokuapp.com/static/app/pwa"
 
 # Generic Constants
 DATE_FORMAT = "%Y:%m:%d %H:%M:%S"
+MINUTES_SINCE_LAST_EMAIL = 15
 
 # Rest API prefix
 REST_API_PREFIX = "/api/1.0"  # No trailing slash, please.
@@ -23,6 +24,12 @@ INVALID_JSON_DATA = 'Bad request data.'
 
 # Success Flash messages.
 REGISTRATION_COMPLETED_CHECK_EMAIL = 'Registration completed! Check your email'
+CONFIRMATION_EMAIL_SENT = 'Confirmation email sent. Check your email'
+CONFIRMATION_EMAIL_ALREADY_SENT = 'Confirmation email has alredy been sent' + \
+                                  ' in the last ' + \
+                                  str(MINUTES_SINCE_LAST_EMAIL) + \
+                                  ' minutes. Please check your email'
+USER_ALREADY_CONFIRMED = 'User already Confirmed.'
 EMAIL_CONFIRMED = 'Email Confirmed.'
 
 # Error Flash sessages.

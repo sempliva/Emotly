@@ -16,6 +16,11 @@ from emotly import constants as CONSTANTS
 from functools import wraps
 from flask import make_response, request, jsonify
 
+from emotly.models import User
+from functools import wraps
+from mongoengine import DoesNotExist
+from flask import request
+
 
 # Create the salt for the user registration.
 def get_salt():
@@ -35,6 +40,7 @@ def generate_confirmation_token(email):
                                   .strftime(CONSTANTS.DATE_FORMAT)
                                   .encode('utf-8') +
                                   get_salt()).hexdigest()
+
     return token_string
 
 
@@ -119,6 +125,12 @@ def sign_jwt(header, payload):
     return signature
 
 
+# App error and response handler.
+def response_handler(code, value, message=None):
+    message = message or "message"
+    return make_response(jsonify({message: value}), code)
+
+
 # Verify that a request has valid json data.
 def valid_json(api_method):
     @wraps(api_method)
@@ -127,16 +139,48 @@ def valid_json(api_method):
             data = request.data.decode("utf-8")
             if not data:
                 return response_handler(500, CONSTANTS.INVALID_JSON_DATA)
+
             data = json.loads(data)
             kwargs['data'] = data
+
         except Exception:
             return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
         return api_method(*args, **kwargs)
     return check_valid_json
 
 
-# App error and response handler.
-def response_handler(code, value, message=None):
-    if message is None:
-        message = "message"
-    return make_response(jsonify({message: value}), code)
+# Decorator used to check user and token for emotlies api
+# and return the user to the original fn.
+def require_token(api_method):
+    @wraps(api_method)
+    def check_api_key(*args, **kwargs):
+        auth_token = request.headers.get('X-Emotly-Auth-Token')
+        if auth_token and verify_jwt_token(auth_token):
+            try:
+                user = get_user_from_jwt_token(auth_token)
+                # Check if user is confirmed, return 403 if does not exist.
+                user_confirmed = is_user_confirmed(user.id)
+                if user_confirmed:
+                    # Pass user as in the  kwargs to the original fn.
+                    kwargs['user'] = user
+                    return api_method(*args, **kwargs)
+                return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
+            # If does not exist return 404.
+            except DoesNotExist:
+                return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+        # If the request has no user token or it is not valid 403.
+        return response_handler(403, CONSTANTS.UNAUTHORIZED)
+    return check_api_key
+
+
+# Return the user from the jwt token.
+def get_user_from_jwt_token(token):
+    json_format = json.loads(token)
+    return User.objects.get(nickname=json_format["payload"]["nickname"])
+
+
+# Return true is the user is confirmed.
+def is_user_confirmed(user_id):
+    if User.objects.only('confirmed_email').get(id=user_id).confirmed_email:
+        return True
+    return False
