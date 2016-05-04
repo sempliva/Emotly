@@ -1,14 +1,14 @@
 # Few Emotly-specific constants.
 
 # Progressive web app link
-APP_LINK = "https://emotly.herokuapp.com/static/app/pwa"
+APP_LINK = 'https://emotly.herokuapp.com/static/app/pwa'
 
 # Generic Constants
-DATE_FORMAT = "%Y:%m:%d %H:%M:%S"
+DATE_FORMAT = '%Y:%m:%dT%H:%M:%SZ'
 MINUTES_SINCE_LAST_EMAIL = 15
 
 # Rest API prefix
-REST_API_PREFIX = "/api/1.0"  # No trailing slash, please.
+REST_API_PREFIX = '/api/1.0'  # No trailing slash, please.
 
 # Rest API response content.
 USER_NOT_CONFIRMED = 'User error.'

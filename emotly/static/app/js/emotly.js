@@ -9,6 +9,7 @@
 
 var emotly_jwt = null;    // JWT global.
 var emotly_allMoods = null;  // Moods global.
+var emoService = new EmotlyService();
 
 $(document).ready(function() {
   /*
@@ -30,7 +31,7 @@ $(document).ready(function() {
   }
 
   // Customize the template for the PWA.
-  $('#navbrandtext').text('App has been (double) fixed.');
+  $('#navbrandtext').text('Update 20160508');
   $('#emotlybrand').attr('href', '/static/app/pwa');
   $('.liLogin').show();
 
@@ -40,63 +41,50 @@ $(document).ready(function() {
     setProgressBarStatus('danger');
   }
 
-  // Fetch something from the Emotly APIs.
+  // If the Fetch API are not supported just yell. Everything is gonna fail.
   if (!self.fetch) {
-    showAlert('danger', 'Fetch APIs are not supported. Nothing is gonna work.')
+    showAlert('danger',
+              'Fetch APIs are not supported. Nothing is gonna work.', 15);
     setProgressBarStatus('danger');
-  } else {
-    setProgressBarStatus('warning', true);
-
-    // TODO: Wrap in a Promise. Let's promise. Make me a promise.
-    // FIXME: And, please, don't break the promise.
-    var fetchInit = { headers: {'X-EMOTLY': 'JSONAPI'} };
-    var fetchReq = new Request('/api/1.0/emotlies', fetchInit);
-
-    fetch(fetchReq).then(function(stuff) {
-      stuff.json().then(function(js) {
-        setProgressBarStatus('success');
-        js.emotlies.forEach(function(single_emotly) {
-          var ulemotlies = $('#ulemotlies');
-          n = single_emotly.user.nickname;
-          m = single_emotly.mood;
-          ulemotlies.prepend("<li class='list-group-item'>" + n +
-                            "<span class='badge'>" + m + "</span></li>");
-        });
-      }).catch(function() {
-        setProgressBarStatus('warning');
-        showAlert('warning', 'Error while parsing emotlies');
-      });
-    }
-  ).catch(function() {
-    setProgressBarStatus('warning');
-    showAlert('warning', 'Error while fetching emotlies');
-  })
   }
 
-  // Attempt to read the JWT from localStorage
-  // localStorage.removeItem('emotly_jwt');
-  emotly_jwt = JSON.parse(localStorage.getItem('emotly_jwt'));
-  if (emotly_jwt != null) {
-    $('.liLogin').hide();
-    $('.liLogout').show();
-    $('#navbrandtext').text('Logged as ' +
-                            emotly_jwt.payload.nickname + '.');
+  // Check if we have to show the login dialog.
+  var hash = window.location.hash.substring(1).toLowerCase();
+  if (hash === 'showlogin') {
+    $('#loginModal').modal('toggle');
   }
+
+  setProgressBarStatus('warning', true);
+
+  // Populate the main list of emotlies.
+  EmotlyService.getEmotlies().then(function(EmoArray) {
+    EmoArray.forEach(function(s_emotly) {
+      setProgressBarStatus('success');
+      prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
+    });
+  }).catch(function(e) {
+    setProgressBarStatus('danger');
+    showAlert('danger', `Error getting the latest emotlies: ${e.message}`, 10);
+  });
 
   // Update the global list of all the available moods.
-  emotlyGetAllMoods().then(function(all_moods) {
-    var ulmoods = $('#ulmoods');
-    var emotly_allMoods = all_moods.moods;
-    emotly_allMoods.forEach(function(mood) {
-      m = mood.value;
-      i = mood.id;
-      ulmoods.append(`<li class='list-group-item'
-                      emotly-data-mood-id='${i}'>${m}</li>`);
+  EmotlyService.getMoods().then(function(MoodArray) {
+    MoodArray.forEach(function(s_mood) {
+      $('#ulmoods').append(`<li class='list-group-item'
+                             emotly-data-mood-id='${s_mood.id}'>
+                             ${s_mood.value}</li>`);
     });
-  }).catch(function(error) {
+  }).catch(function(e) {
     setProgressBarStatus('danger');
-    showAlert('danger', 'Error while fetching the moods' + error, 7);
-  })
+    showAlert('danger', `Error while fetching the moods: ${e.message}`, 10);
+  });
+
+  // If the User is logged, set the UI accordingly.
+  if (emoService.isLogged()) {
+    $('.liLogin').hide();
+    $('.liLogout').show();
+    $('#navbrandtext').text(`Logged as ${emoService.user.nickname}`);
+  }
 
   $('#alogout').click(logout_button_pressed);
   $('#ulmoods').click(li_mood_selected);
@@ -106,12 +94,11 @@ $(document).ready(function() {
  * Logout link handler.
  */
 function logout_button_pressed() {
+  emoService.logout();
   $('#navbar').collapse('hide');
-  localStorage.removeItem('emotly_jwt');
   $('.liLogin').show();
   $('.liLogout').hide();
   showAlert('success', 'Logged out');
-  emotly_jwt = null;
   $('#navbrandtext').text('');
 }
 
@@ -127,18 +114,15 @@ function login_button_pressed() {
   var n = $('#useridinput').val();
   var p = $('#passwordinput').val();
 
-  emotlyLogin(n, p).then(function(jwt_from_emotly) {
-    emotly_jwt = jwt_from_emotly;
-    localStorage.setItem('emotly_jwt', JSON.stringify(emotly_jwt));
+  emoService.postLogin(n, p).then(function(t_user) {
     setProgressBarStatus('success');
     showAlert('success', 'Logged in!');
     $('.liLogin').hide();
     $('.liLogout').show();
-    $('#navbrandtext').text('Logged as ' +
-                            emotly_jwt.payload.nickname + '.');
-  }).catch(function(jwt_error) {
+    $('#navbrandtext').text(`Logged as ${t_user.nickname}`);
+  }).catch(function(e) {
     setProgressBarStatus('danger');
-    showAlert('danger', 'Login failed ' + jwt_error);
+    showAlert('danger', `Login error: ${e.message}`, 10);
     $('.liLogin').show();
     $('.liLogout').hide();
   })
@@ -152,19 +136,14 @@ function li_mood_selected(e) {
   setProgressBarStatus('warning', true);
   $('#newEmotlyModal').modal('toggle');
   $('#navbar').collapse('hide');
-  var n = emotly_jwt.payload.nickname;
-  var ulemotlies = $('#ulemotlies');
-  var linewemotly = $("<li class='list-group-item\
-                    list-group-item-warning'><cite>posting...</cite></li>");
-  $(ulemotlies).prepend(linewemotly);
 
   // Get the relevant MoodID from the targetElement.
   var mid = $(e.target).attr('emotly-data-mood-id');
 
-  emotlyNewEmotly(emotly_jwt, mid).then(function(posted_mood) {
+  emoService.postNewEmotly(mid).then(function(posted_mood) {
     setProgressBarStatus('success');
-    linewemotly.removeClass('list-group-item-warning');
-    linewemotly.html(`${n}<span class='badge'>${posted_mood}</span></li>`);
+    var n = emoService.user.nickname;
+    prependEmotly(n, new Date(), posted_mood.value);
   }).catch(function(err) {
     setProgressBarStatus('danger');
     showAlert('danger', err);
@@ -173,120 +152,14 @@ function li_mood_selected(e) {
 }
 
 /*
- * This function returns a Promise with the posted Emotly/mood.
- *
- * Parameters:
- *  jwt: JSON WebToken
- *  mood_id: the numeric ID representing the mood to post
+ * Prepend a new Emotly in the list.
  */
-function emotlyNewEmotly(jwt, mood_id) {
-  return new Promise(function(resolve, reject) {
-    fetch('/api/1.0/emotlies/new', {
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json; charset=utf-8',
-        'X-EMOTLY': 'JSONAPI', /* Pass-through for the Emotly ServiceWorker. */
-        'X-Emotly-Auth-Token': JSON.stringify(jwt)
-      },
-      body: JSON.stringify({ mood: mood_id })
-    }).then(function(raw_response) { /* Fetch success. */
-      if (raw_response.status == 200) {
-        raw_response.json().then(function(json_response) { /* response.json()
-                                                              success. */
-          /* If there is a mood the response should be ok. */
-          if (json_response.emotly.mood) {
-            /* Fulfill the promise with the mood. */
-            resolve(json_response.emotly.mood);
-          } else { /* The JSON response is OK but it's not something
-                      we were expecting. */
-            reject(Error('Emotly Error: invalid response'));
-          }
-        })
-        .catch(function(json_error) { /* response.json() error. */
-          reject(Error('Emotly Error: invalid JSON'));
-        })
-      } else { /* Fetch response is not 200. */
-        reject(Error(`Emotly Error: invalid return status\
-                      (${raw_response.status})`));
-      }
-    })
-    .catch(function(fetch_error) {  /* Fetch error. */
-      reject(Error(`Emotly Error: fetch/networking error (${fetch.error})`));
-    })
-  } /* new Promise body. */
-); /* Promise() Arguments. */
-} /* emotlyNewEmotly() */
-
-/*
- * This function returns a Promise with the JWT obtained by the Emotly Service.
- *
- * Parameters:
- *  login: it's the email address
- *  password: well, you know!:)
- */
-function emotlyLogin(login, password) {
-  return new Promise(function(resolve, reject) {
-    fetch('/api/1.0/login', {
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json; charset=utf-8',
-        'X-EMOTLY': 'JSONAPI' /* Pass-through for the Emotly ServiceWorker. */
-      },
-      body: JSON.stringify({ user_id: login, password: password})
-    }).then(function(raw_response) { /* Fetch success. */
-      if (raw_response.status == 200) {
-        raw_response.json().then(function(json_response) { /* response.json()
-                                                              success. */
-          /* We check that the JWT has all the requried fields before
-             fulfilling the promise. */
-          if (json_response.header && json_response.payload &&
-              json_response.signature) {
-                /* Fulfill the promise with the whole JWT. */
-                resolve(json_response);
-              } else { /* The JSON response is OK but it's not a valid JWT. */
-                reject(Error('JWT Error: invalid response'));
-              }
-        }).catch(function(json_error) { /* response.json() error. */
-          reject(Error('JWT Error: invalid JSON (' + json_error + ')'));
-        });
-      } else { /* Fetch response is not 200. */
-        reject(Error('JWT Error: invalid return status (' +
-               raw_response.status + ')'));
-      }
-    }).catch(function(fetch_error) { /* Fetch error. */
-      reject(Error('JWT Error: fetch/networking error (' + fetch.error + ')'));
-    });
-  } /* new Promise body. */
-); /* Promise() Arguments. */
-} /* emotlyLogin() */
-
-/*
- * This function returns a Promise with all the moods currently supported by
- * the Emotly service.
- */
-function emotlyGetAllMoods() {
-  return new Promise(function(resolve, reject) {
-    fetch('/api/1.0/moods', { headers: { 'X-EMOTLY': 'JSONAPI' }})
-    .then(function(raw_response) { /* Fetch success. */
-      if (raw_response.status == 200) {
-        raw_response.json().then(function(json_response) { /* response.json()
-                                                              success. */
-          /* We resolve the promise with everything we got. */
-          resolve(json_response);
-        }).catch(function(json_error) {  /* response.json() error. */
-          reject(Error(`Moods Error: invalid JSON (${json_error})`));
-        })
-      } else { /* Fetch response is not 200. */
-        reject(Error(`Moods Error: invalid return\
-                      status (${raw_response.status})`));
-      }
-    })
-    .catch(function(fetch_error) { /* Fetch error. */
-      reject(Error(`Moods Error: fetch/networking error (${fetch.error})`));
-    })
-  } /* new Promise body. */
-); /* Promise() Arguments. */
-} /* emotlyGetAllMoods() */
+function prependEmotly(nickname, timestamp, mood) {
+  var d = moment(timestamp).fromNow();
+  $('#ulemotlies').prepend(`<li class='list-group-item'>${nickname} feels
+                       <strong><cite>${mood}</cite></strong>
+                       <span class='badge'>${d}</span></li>`);
+}
 
 /*
  * Show a message box in the top of the drawing area.

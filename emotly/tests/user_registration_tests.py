@@ -15,6 +15,7 @@ class UserRegistrationTestCase(unittest.TestCase):
     def tearDown(self):
         User.objects(nickname="nicknametest").delete()
         User.objects(nickname="nicknametest1").delete()
+        User.objects(nickname="nicknametest12").delete()
         pass
 
     def test_dummy(self):
