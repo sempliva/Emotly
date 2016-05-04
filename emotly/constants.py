@@ -1,5 +1,8 @@
 # Few Emotly-specific constants.
 
+# Progressive web app link
+APP_LINK = "https://emotly.herokuapp.com/static/app/pwa"
+
 # Generic Constants
 DATE_FORMAT = "%Y:%m:%d %H:%M:%S"
 

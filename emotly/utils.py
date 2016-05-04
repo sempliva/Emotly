@@ -38,7 +38,7 @@ def generate_confirmation_token(email):
     return token_string
 
 
-# Function use to actually send the email for the email
+# Function used to actually send an email for the email
 # confirmation of the user during the registration process.
 def send_email_confirmation(email, confirmation_token):
     message = PMMail(api_key=app.config['PM_API_TOKEN'],
@@ -49,6 +49,19 @@ def send_email_confirmation(email, confirmation_token):
                                "email in the next 24 hours. Click on "
                                "https://emotly.herokuapp.com/confirm_email/" +
                                confirmation_token)
+    message.send()
+
+
+# Function used to actually send a welcome email with the
+# link to the progressive web app.
+def send_welcome_email(email, app_link):
+    message = PMMail(api_key=app.config['PM_API_TOKEN'],
+                     subject="Hello from Emotly.com",
+                     sender=app.config['EMAIL_SENDER'],
+                     to=email,
+                     text_body="Welcome to Emotly.com. Thank you for "
+                               "confirming your email. Start to get emotional "
+                               "on " + app_link)
     message.send()
 
 
