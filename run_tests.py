@@ -25,6 +25,7 @@ SOFTWARE.
 # Emotly Test Suite
 
 import unittest
+from emotly import app
 from emotly.tests.basic_tests import BasicEmotlyPageCase
 from emotly.tests.user_model_tests import UserModelTestCase
 from emotly.tests.token_model_tests import TokenModelTestCase
@@ -60,4 +61,5 @@ emotly_controller_suite.addTest(unittest.makeSuite(RESTAPITestCase))
 emotly_controller_suite.addTest(unittest.makeSuite(TokenTestCase))
 
 if __name__ == '__main__':
+    assert app.debug is False, 'Don\'t run in debug mode.'
     unittest.main()

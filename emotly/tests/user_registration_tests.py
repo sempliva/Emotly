@@ -46,6 +46,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_signup(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="nicknametest",
                                inputEmail="email@emailtest.com",
@@ -55,6 +56,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_signup_email_is_lower(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="nicknametest12",
                                inputEmail="Email1@EMAILTEST.com",
@@ -64,6 +66,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_signup_incomplete_request(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="incompleterequest",
                                inputPassword="password"),
@@ -72,6 +75,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_signup_short_nickname(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="short",
                                inputEmail="email@short.com",
@@ -82,6 +86,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_cannot_signup_space_in_nickname(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="space in nickname ",
                                inputEmail="email@spase.com",
@@ -92,6 +97,7 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_cannot_signup_space_in_email(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="spaceinemail",
                                inputEmail="email@spase.com ",
@@ -102,12 +108,14 @@ class UserRegistrationTestCase(unittest.TestCase):
 
     def test_signup_user_exist(self):
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="nicknametest1",
                                inputEmail="email@nicknametest1.com",
                                inputPassword="password"),
                            follow_redirects=True)
         rv = self.app.post('/signup',
+                           base_url='https://localhost',
                            data=dict(
                                inputNickname="nicknametest1",
                                inputEmail="email@nicknametest1.com",
@@ -115,3 +123,13 @@ class UserRegistrationTestCase(unittest.TestCase):
                            follow_redirects=True)
         assert (CONSTANTS.REGISTRAION_ERROR_USER_EXISTS).\
             encode('utf-8') in rv.data
+
+    # Test non-secure requests.
+    def test_signup_non_secure(self):
+        rv = self.app.post('/signup',
+                           base_url='http://localhost',
+                           data=dict(
+                               inputNickname="nicknametest",
+                               inputEmail="email@emailtest.com",
+                               inputPassword="password"))
+        assert (CONSTANTS.NOT_HTTPS_REQUEST).encode('utf-8') in rv.data
