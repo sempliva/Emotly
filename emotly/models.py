@@ -52,9 +52,6 @@ class User(db.Document):
         enc_password = user.password.encode('utf-8')
         return bcrypt.hashpw(password, enc_password) == enc_password
 
-    # Used to format user's data in a more readable fashion.
-    def serialize(self):
-        return {'nickname': self.nickname}
 
 MOOD = {1: "sad", 2: "happy", 3: "proud", 4: "tired", 5: "hopeful",
         6: "in love", 7: "surprised", 8: "fascinated", 9: "amazed",
@@ -75,7 +72,6 @@ class Emotly(db.Document):
             return {'mood': MOOD[self.mood],
                     'created_at': self.created_at
                     .strftime(CONSTANTS.DATE_FORMAT),
-                    'user': self.user.serialize()}
+                    'nickname': self.user.nickname}
         return {'mood': MOOD[self.mood],
-                'created_at': self.created_at
-                .strftime(CONSTANTS.DATE_FORMAT)}
+                'created_at': self.created_at.strftime(CONSTANTS.DATE_FORMAT)}

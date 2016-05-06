@@ -129,7 +129,7 @@ class EmotlyService {
         raw_response.json().then(function(json_response) {
           var EmotlyArray = new Array();
           json_response.emotlies.forEach(function(t_emotly) {
-            EmotlyArray.push(new Emotly(t_emotly.user.nickname,
+            EmotlyArray.push(new Emotly(t_emotly.nickname,
                                         t_emotly.created_at, t_emotly.mood));
           });
 
