@@ -2,6 +2,8 @@
 User Model Test Case
 """
 import unittest
+import datetime
+import time
 from mongoengine import ValidationError, NotUniqueError
 from emotly import app
 from emotly import constants as CONSTANTS
@@ -21,6 +23,33 @@ class UserModelTestCase(unittest.TestCase):
                  email='test_create_user@example.com',
                  password="FakeUserPassword123", salt="salt")
         self.assertTrue(u.save())
+
+    def test_create_3_user(self):
+        u = User(nickname='testemotly',
+                 email='test_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        time.sleep(1)  # sleep time in seconds
+        u1 = User(nickname='testemotly1',
+                  email='test_emotly1@example.com',
+                  password="FakeUserPassword123",
+                  confirmed_email=True,
+                  last_login=datetime.datetime.now(),
+                  salt="salt")
+        u1.save()
+        time.sleep(1)  # sleep time in seconds
+        u2 = User(nickname='testemotly2',
+                  email='test_emotly2@example.com',
+                  password="FakeUserPassword123",
+                  confirmed_email=True,
+                  last_login=datetime.datetime.now(),
+                  salt="salt")
+        u2.save()
+        self.assertNotEqual(u.created_at, u1.created_at)
+        self.assertNotEqual(u1.created_at, u2.created_at)
 
     def test_cannot_create_user_nickname_too_long(self):
         u = User(nickname='VeryLongNicknameThatIsTooLong',

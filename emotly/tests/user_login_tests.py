@@ -34,6 +34,29 @@ class LoginTestCases(unittest.TestCase):
                            base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
+    def test_last_login_date_updated(self):
+        salt = get_salt()
+        u = User(nickname='test12345678910',
+                 email='email@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'email@emailtest.com',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        user = User.objects.get(email=u.email)
+
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        user2 = User.objects.get(email=u.email)
+
+        self.assertNotEqual(user.last_login, user2.last_login)
+
     def test_login_nickname_success(self):
         salt = get_salt()
         u = User(nickname='testnickname',
