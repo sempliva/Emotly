@@ -56,6 +56,26 @@ class UserRegistrationTestCase(unittest.TestCase):
         assert (CONSTANTS.REGISTRAION_ERROR_INVALID_DATA).\
             encode('utf-8') in rv.data
 
+    def test_cannot_signup_space_in_nickname(self):
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="space in nickname ",
+                               inputEmail="email@spase.com",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        assert (CONSTANTS.REGISTRAION_ERROR_INVALID_DATA).\
+            encode('utf-8') in rv.data
+
+    def test_cannot_signup_space_in_email(self):
+        rv = self.app.post('/signup',
+                           data=dict(
+                               inputNickname="spaceinemail",
+                               inputEmail="email@spase.com ",
+                               inputPassword="password"),
+                           follow_redirects=True)
+        assert (CONSTANTS.REGISTRAION_ERROR_INVALID_DATA).\
+            encode('utf-8') in rv.data
+
     def test_signup_user_exist(self):
         rv = self.app.post('/signup',
                            data=dict(
