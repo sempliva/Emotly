@@ -4,7 +4,7 @@
 APP_LINK = 'https://emotly.herokuapp.com/static/app/pwa'
 
 # Generic Constants
-DATE_FORMAT = '%Y:%m:%dT%H:%M:%S'
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 MINUTES_SINCE_LAST_EMAIL = 15
 
 # Rest API prefix
