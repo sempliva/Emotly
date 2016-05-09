@@ -11,7 +11,7 @@ from emotly import constants as CONSTANTS
 
 class Token(db.EmbeddedDocument):
     token = db.StringField(unique=True, sparse=True)
-    created_at = db.DateTimeField(default=datetime.datetime.now())
+    created_at = db.DateTimeField(default=datetime.datetime.now)
 
 
 class User(db.Document):
@@ -22,7 +22,7 @@ class User(db.Document):
     password = db.StringField(min_length=8, required=True)
     salt = db.StringField(required=True)
     confirmed_email = db.BooleanField(default=False)
-    created_at = db.DateTimeField(default=datetime.datetime.now())
+    created_at = db.DateTimeField(default=datetime.datetime.now)
     update_at = db.DateTimeField()
     last_login = db.DateTimeField()
     confirmation_token = db.EmbeddedDocumentField(Token)
@@ -44,7 +44,7 @@ MOOD = {1: "sad", 2: "happy", 3: "proud", 4: "tired", 5: "hopeful",
 class Emotly(db.Document):
     mood = db.IntField(required=True, choices=list(MOOD))
     user = db.ReferenceField(User, required=True)
-    created_at = db.DateTimeField(default=datetime.datetime.now())
+    created_at = db.DateTimeField(default=datetime.datetime.now)
 
     # TODO Change in something better.
     # Serialize object formatting date and mood and user if present.

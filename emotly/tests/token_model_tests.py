@@ -3,6 +3,7 @@ Token Model Test Case
 """
 import unittest
 import datetime
+import time
 from mongoengine import NotUniqueError
 from emotly import app
 from emotly.models import User, Token
@@ -29,6 +30,16 @@ class TokenModelTestCase(unittest.TestCase):
         token = Token(token=token_string)
         u.confirmation_token = token
         self.assertTrue(u.save())
+
+    def test_create_3_token(self):
+        token_string = generate_confirmation_token('test@example.com')
+        token = Token(token=token_string)
+        time.sleep(1)  # sleep time in seconds
+        token1 = Token(token=token_string)
+        time.sleep(1)  # sleep time in seconds
+        token2 = Token(token=token_string)
+        self.assertNotEqual(token.created_at, token1.created_at)
+        self.assertNotEqual(token1.created_at, token2.created_at)
 
     def test_cannot_create_token_not_unique(self):
         u = User(nickname='testZ123456',
