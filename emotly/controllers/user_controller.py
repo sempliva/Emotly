@@ -13,8 +13,9 @@ from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 from emotly.utils import get_salt, hash_password
 from emotly.utils import generate_confirmation_token
 from emotly.utils import send_email_confirmation, send_welcome_email
-from emotly.utils import generate_jwt_token
-from emotly.utils import response_handler
+from emotly.utils import generate_jwt_token, is_user_confirmed
+from emotly.utils import response_handler, valid_json
+
 
 # User Controller
 user_controller = Blueprint('user_controller', __name__)
@@ -129,6 +130,45 @@ def confirm_email(confirmation_token):
     return render_template("page-home.html")
 
 
+# This route is used to resend the confirmation email.
+@user_controller.route(CONSTANTS.REST_API_PREFIX +
+                       '/resend_email_confirmation', methods=['GET'])
+@valid_json
+def resend_email_confirmation(**kwargs):
+    try:
+        data = kwargs['data']
+        # Get user by email or nickname.
+        if '@' in data['user_id']:
+            user = User.objects.only('confirmed_email',
+                                     'confirmation_token', 'email'). \
+                get(email__iexact=data['user_id'])
+        else:
+            user = User.objects.only('confirmed_email',
+                                     'confirmation_token', 'email'). \
+                get(nickname__iexact=data['user_id'])
+        # Check if user is confirmed, return 400 if it is already confirmed.
+        if user.confirmed_email:
+            return response_handler(400, CONSTANTS.USER_ALREADY_CONFIRMED)
+
+        secs = (datetime.datetime.now() -
+                user.confirmation_token.created_at).total_seconds()
+        minutes = int(secs / 60) % 60
+        # Check if user requested token less then MINUTES_SINCE_LAST_EMAIL
+        # minutes ago. Return 400 if the token has already been sent.
+        if minutes < CONSTANTS.MINUTES_SINCE_LAST_EMAIL:
+            return response_handler(400,
+                                    CONSTANTS.CONFIRMATION_EMAIL_ALREADY_SENT)
+
+        user.update(confirmation_token__created_at=datetime.datetime.now())
+        send_email_confirmation(user.email, user.confirmation_token.token)
+    # If user does not exist return 404.
+    except DoesNotExist:
+        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+    except Exception:
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+    return response_handler(200, CONSTANTS.CONFIRMATION_EMAIL_SENT)
+
+
 # Check if the confirmation token is still valid (received in the last 24
 # hours). Activate the user, delete the token, update the update_at user field.
 def confirm_registration_email(confirmation_token):
@@ -139,16 +179,3 @@ def confirm_registration_email(confirmation_token):
                                         unset__confirmation_token=1,
                                         update_at=datetime.datetime.now())
     send_welcome_email(user.email, CONSTANTS.APP_LINK)
-
-
-# Return the user from the jwt token
-def get_user_from_jwt_token(token):
-    json_format = json.loads(token)
-    return User.objects.get(nickname=json_format["payload"]["nickname"])
-
-
-# Return true is the user is confirmed.
-def is_user_confirmed(user_id):
-    if User.objects.only('confirmed_email').get(id=user_id).confirmed_email:
-        return True
-    return False

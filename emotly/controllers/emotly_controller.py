@@ -7,40 +7,14 @@ import json
 from flask import Blueprint, request, flash
 from emotly import constants as CONSTANTS
 from flask.ext.mongoengine import MongoEngine
-from functools import wraps
 from emotly.models import User, Emotly, MOOD
 from mongoengine import DoesNotExist
-from emotly.controllers.user_controller import get_user_from_jwt_token
-from emotly.controllers.user_controller import is_user_confirmed
-from emotly.utils import verify_jwt_token, valid_json, response_handler
+from emotly.utils import get_user_from_jwt_token, response_handler
+from emotly.utils import require_token, valid_json
 
 
 # Emotly Controller
 emotly_controller = Blueprint('emotly_controller', __name__)
-
-
-# Decorator used to check user and token for emotlies api
-# and return the user to the original fn.
-def require_token(api_method):
-    @wraps(api_method)
-    def check_api_key(*args, **kwargs):
-        auth_token = request.headers.get('X-Emotly-Auth-Token')
-        if auth_token and verify_jwt_token(auth_token):
-            try:
-                user = get_user_from_jwt_token(auth_token)
-                # Check if user is confirmed, return 403 if does not exist.
-                user_confirmed = is_user_confirmed(user.id)
-                if user_confirmed:
-                    # Pass user as in the  kwargs to the original fn.
-                    kwargs['user'] = user
-                    return api_method(*args, **kwargs)
-                return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
-            # If does not exist return 404.
-            except DoesNotExist:
-                return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
-        # If the request has no user token or it is not valid 403.
-        return response_handler(403, CONSTANTS.UNAUTHORIZED)
-    return check_api_key
 
 
 # Retrieve the emotlies list.
