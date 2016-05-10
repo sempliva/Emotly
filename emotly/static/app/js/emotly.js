@@ -56,16 +56,23 @@ $(document).ready(function() {
 
   setProgressBarStatus('warning', true);
 
-  // Populate the main list of emotlies.
-  EmotlyService.getEmotlies().then(function(EmoArray) {
-    EmoArray.forEach(function(s_emotly) {
-      setProgressBarStatus('success');
-      prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
-    });
-  }).catch(function(e) {
-    setProgressBarStatus('danger');
-    showAlert('danger', `Error getting the latest emotlies: ${e.message}`, 10);
-  });
+  EmotlyCache.openDB().then(function(){
+    // Populate the main list of emotlies.
+    EmotlyService.getEmotlies().then(function(EmoArray) {
+        EmoArray.forEach(function(s_emotly) {
+          setProgressBarStatus('success');
+          prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
+        }); /* EmoArray forEach*/
+    }).catch(function(EmoArray) {
+      EmoArray.forEach(function(s_emotly) {
+        setProgressBarStatus('success');
+        prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
+      }); /* EmoArray forEach*/
+    }); /* getEmotlies */
+  }).catch(function(err) {
+    showAlert('danger', err);
+  }); /* openDB */
+
 
   // Update the global list of all the available moods.
   EmotlyService.getMoods().then(function(MoodArray) {
@@ -143,13 +150,27 @@ function li_mood_selected(e) {
   emoService.postNewEmotly(mid).then(function(posted_mood) {
     setProgressBarStatus('success');
     var n = emoService.user.nickname;
-    prependEmotly(n, new Date(), posted_mood.value);
+    date = new Date();
+    prependEmotly(n, date, posted_mood.value);
+    EmotlyCache.getEmotlyStoreNumber().then(function(emotlyStoreCount) {
+      if(emotlyStoreCount >= 10){
+        EmotlyCache.deleteFirstEmotly().then(function() {
+          EmotlyCache.addEmotly(n, date, posted_mood.value);
+        }).catch(function(err) {
+                showAlert('danger', err);
+        }); /* deleteFirstEmotly*/
+      } else {
+        EmotlyCache.addEmotly(n, date, posted_mood.value);
+      }
+    }).catch(function(err) {
+      showAlert('danger', err);
+    }); /* getEmotlyStoreNumber */
   }).catch(function(err) {
     setProgressBarStatus('danger');
     showAlert('danger', err);
     linewemotly.remove();
-  });
-}
+  }); /* postNewEmotly */
+} /* li_mood_selected  */
 
 /*
  * Prepend a new Emotly in the list.

@@ -72,7 +72,6 @@ class EmotlyService {
       this.user = emotly_stored_user;
     }
   }
-
   /*
    * Perform a logout by dumping the user data.
    */
@@ -102,21 +101,40 @@ class EmotlyService {
           reject(Error(`HTTP ${raw_response.status}`));
         }
 
+        // Delete all emotlies from indexedDB and save the new ones.
         raw_response.json().then(function(json_response) {
+          EmotlyCache.deleteAllEmotlies().then(function(){
+            json_response.emotlies.forEach(function(t_emotly) {
+              EmotlyCache.addEmotly(t_emotly.user.nickname,
+                                    t_emotly.created_at, t_emotly.mood);
+            });
+          }).catch(function(err) {
+            showAlert('danger', err);
+          }); /* deleteAllEmotlies*/
+
           var EmotlyArray = new Array();
           json_response.emotlies.forEach(function(t_emotly) {
             EmotlyArray.push(new Emotly(t_emotly.user.nickname,
                                         t_emotly.created_at, t_emotly.mood));
           });
-
           // Success: fulfill the promise with the whole array.
           resolve(EmotlyArray.sort(emotly_sort));
         }).catch(function(e) { /* json().catch() */
           reject(Error(`JSON (${e.message})`));
         })
       }).catch(function(e) { /* fetch().catch() */
-        reject(Error(`fetch (${e.message})`));
-      })
+        var EmotlyArray = new Array();
+        EmotlyCache.getAllEmotlies().then(function(EmoArray) {
+          EmoArray.forEach(function(t_emotly) {
+            EmotlyArray.push(new Emotly(t_emotly.nickname,
+                                        t_emotly.timestamp, t_emotly.mood));
+          }); /* EmoArray forEach*/
+
+        resolve(EmotlyArray.sort(emotly_sort));
+        }).catch(function(err) {
+          showAlert('danger', err);
+        }); /* EmotlyCache getAllEmotlies*/
+      }) /* fetch().catch() */
     } /* Promise scope. */
   ); /* Promise() */
   } /* getEmotlies() */
@@ -124,32 +142,32 @@ class EmotlyService {
   /*
    * Static GET all moods.
    */
-  static getMoods() {
-    return new Promise(function(resolve, reject) {
-      fetch('/api/1.0/moods', {
-        headers: { 'X-EMOTLY': 'JSONAPI'}
-      }).then(function(raw_response) {
-        if (raw_response.status != 200) {
-          reject(Error(`HTTP ${raw_response.status}`));
-        }
+   static getMoods() {
+     return new Promise(function(resolve, reject) {
+       fetch('/api/1.0/moods', {
+         headers: { 'X-EMOTLY': 'JSONAPI'}
+       }).then(function(raw_response) {
+         if (raw_response.status != 200) {
+           reject(Error(`HTTP ${raw_response.status}`));
+         }
 
-        raw_response.json().then(function(json_response) {
-          var MoodArray = new Array();
-          json_response.moods.forEach(function(t_mood) {
-            MoodArray.push(new Mood(t_mood.id, t_mood.value));
-          });
+         raw_response.json().then(function(json_response) {
+           var MoodArray = new Array();
+           json_response.moods.forEach(function(t_mood) {
+             MoodArray.push(new Mood(t_mood.id, t_mood.value));
+           });
 
-          // Success: fulfill the promise with the whole array.
-          resolve(MoodArray.sort(mood_sort));
-        }).catch(function(e) { /* json().catch() */
-          reject(Error(`JSON (${e.message})`));
-        })
-      }).catch(function(e) { /* fetch().catch() */
-        reject(Error(`fetch (${e.message})`));
-      })
-    } /* Promise scope. */
-  ); /* Promise() */
-  } /* getMoods() */
+           // Success: fulfill the promise with the whole array.
+           resolve(MoodArray.sort(mood_sort));
+         }).catch(function(e) { /* json().catch() */
+           reject(Error(`JSON (${e.message})`));
+         })
+       }).catch(function(e) { /* fetch().catch() */
+         reject(Error(`fetch (${e.message})`));
+       })
+     } /* Promise scope. */
+   ); /* Promise() */
+   } /* getMoods() */
 
   /*
    * Attempts to login.

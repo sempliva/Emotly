@@ -10,12 +10,13 @@ function L(msg) {
 
 // EMOTLY_CACHE_NAME should also be used in the UI
 // to identify the version.
-var EMOTLY_CACHE_NAME = "pwa-dev-client-20160508-3";
+var EMOTLY_CACHE_NAME = "pwa-dev-client-20160508-5";
 var EMOTLY_CACHE_FLES = [
     '/static/app/pwa', '/static/app/ext/bootstrap/css/bootstrap.min.css',
     '/static/app/css/emotly.css', '/static/app/ext/js/jquery/jquery-1.12.2.min.js',
     '/static/app/ext/bootstrap/js/bootstrap.min.js',
     '/static/app/js/emotly.js', '/static/app/js/emotly-sa.js',
+    '/static/app/js/emotly-cache.js',
     '/static/app/img/dandelion.jpg', '/static/app/img/sloth.jpg',
     '/static/app/ext/css/ie10-viewport-bug-workaround.css',
     '/static/app/ext/js/ie10-viewport-bug-workaround.js',
