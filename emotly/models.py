@@ -57,7 +57,10 @@ class User(db.Document):
         return {'nickname': self.nickname}
 
 MOOD = {1: "sad", 2: "happy", 3: "proud", 4: "tired", 5: "hopeful",
-        6: "in love", 7: "surprised", 8: "fascinated", 9: "amazed"}
+        6: "in love", 7: "surprised", 8: "fascinated", 9: "amazed",
+        10: "annoyed", 11: "disappointed", 12: "emotional", 13: "relaxed",
+        14: "hungry", 15: "sleepy", 16: "exhausted", 17: "depressed",
+        18: "bored", 19: "lucky", 20: "inspired"}
 
 
 class Emotly(db.Document):
