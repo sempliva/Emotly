@@ -61,6 +61,7 @@ class RESTAPITestCase(unittest.TestCase):
             self.assertEqual(type(mood['id']), int)
             self.assertEqual(type(mood['value']), str)
 
+    # Unauthorized access.
     def test_cannot_get_emotlies_unauthorized(self):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "/emotlies/own",
                           base_url='https://localhost')
@@ -77,23 +78,7 @@ class RESTAPITestCase(unittest.TestCase):
                            data=json.dumps(m), base_url='https://localhost')
         self.assertEqual(rv.status_code, 403)
 
-    def test_post_emotly(self):
-        u = User(nickname='testpost',
-                 email='test_post_emotly@example.com',
-                 password="FakeUserPassword123",
-                 confirmed_email=True,
-                 last_login=datetime.datetime.now(),
-                 salt="salt")
-        u.save()
-        m = {'mood': 1}
-        token = generate_jwt_token(u)
-        headers = {'content-type': 'application/json',
-                   'X-Emotly-Auth-Token': token}
-        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
-                           headers=headers, data=json.dumps(m),
-                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 200)
-
+    # Json data checks.
     def test_post_emotly_json_data_not_contains_mood(self):
         u = User(nickname='testpost1',
                  email='test_post_emotly1@example.com',
@@ -141,6 +126,24 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
                            headers=headers, base_url='https://localhost')
         assert (CONSTANTS.INVALID_JSON_DATA).encode('utf-8') in rv.data
+
+    # Success tests.
+    def test_post_emotly(self):
+        u = User(nickname='testpost',
+                 email='test_post_emotly@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        m = {'mood': 1}
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
+                           headers=headers, data=json.dumps(m),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
 
     def test_get_own_emotlies(self):
         u = User(nickname='testget',
@@ -190,6 +193,32 @@ class RESTAPITestCase(unittest.TestCase):
                           base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
+    def test_get_user_details_last_emotly(self):
+        u = User(nickname='testgetlast',
+                 email='test_get_emotly_last@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        e = Emotly(mood=1)
+        e.user = u
+        e.save()
+
+        emotly = Emotly(mood=2)
+        emotly.user = u
+        emotly.save()
+
+        emotly = Emotly(mood=3)
+        emotly.user = u
+        emotly.save()
+
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + u.nickname,
+                          headers=headers, base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
     def test_get_emotly(self):
         u = User(nickname='testgetsingle',
                  email='test_get_emotly@example.com',
@@ -229,6 +258,7 @@ class RESTAPITestCase(unittest.TestCase):
                           base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
+    # Non existing emotly.
     def test_get_non_existing_emotly(self):
         u = User(nickname='testnotexisting',
                  email='test_get_ne_emotly@example.com',
@@ -248,7 +278,21 @@ class RESTAPITestCase(unittest.TestCase):
                           base_url='https://localhost')
         self.assertEqual(rv.status_code, 404)
 
-    # Next 3 test non existing user access to api
+    def test_get_non_existing_last_emotly_for_user(self):
+        u = User(nickname='testgetempty',
+                 email='test_get_emotlies_own_empty@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + u.nickname,
+                          headers=headers, base_url='https://localhost')
+        self.assertEqual(rv.status_code, 404)
+
+    # Non existing user.
     def test_non_existing_user_get_emotlies(self):
         u = User(nickname='fake',
                  email='fake@example.com',
@@ -290,7 +334,35 @@ class RESTAPITestCase(unittest.TestCase):
                            base_url='https://localhost')
         self.assertEqual(rv.status_code, 404)
 
-    # Next 3 test user not confirmed access to api
+    def test_non_existing_user_get_last_emotly(self):
+        u = User(nickname='fake',
+                 email='fake@example.com',
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
+
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + u.nickname,
+                          headers=headers, base_url='https://localhost')
+        self.assertEqual(rv.status_code, 404)
+
+    def test_get_user_details_last_emotly_nickname_non_existent(self):
+        u = User(nickname='userdet',
+                 email='fake@example.com',
+                 confirmed_email=True,
+                 password="FakeUserPassword123",
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
+
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + "fakenick",
+                          headers=headers, base_url='https://localhost')
+        self.assertEqual(rv.status_code, 404)
+
+    # User not confirmed.
     def test_not_confirmed_user_post_emotly(self):
         u = User(nickname='testpostnc',
                  email='test_post_e_nc@example.com',
@@ -497,3 +569,25 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "/emotlies",
                           base_url='http://localhost')
         self.assertEqual(rv.status_code, 403)
+
+    def test_response_details_last_emotly(self):
+        u = User(nickname='testgetlast',
+                 email='test_get_emotly_last@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        u.save()
+        e = Emotly(mood=1)
+        e.user = u
+        e.save()
+
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': generate_jwt_token(u)}
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + u.nickname,
+                          headers=headers, base_url='https://localhost')
+        data = json.loads(rv.data.decode('utf-8'))
+        self.assertEqual(data["emotly"]["nickname"], u.nickname)
+        self.assertEqual(data["emotly"]["mood"], MOOD[1])
+        self.assertEqual(data["emotly"]["created_at"],
+                         e.created_at.strftime(CONSTANTS.DATE_FORMAT))

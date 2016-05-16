@@ -52,7 +52,7 @@ def login():
             user = User.objects.get(nickname__iexact=data['user_id'])
     except DoesNotExist:
         # User does not exist.
-        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+        return response_handler(404, CONSTANTS.AUTHENTICATION_ERROR)
     except Exception:
         # No data sent by the client or there
         # was an error queryng the database.
@@ -189,7 +189,7 @@ def resend_email_confirmation(**kwargs):
         send_email_confirmation(user.email, user.confirmation_token.token)
     # If user does not exist return 404.
     except DoesNotExist:
-        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+        return response_handler(404, CONSTANTS.AUTHENTICATION_ERROR)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return response_handler(200, CONSTANTS.CONFIRMATION_EMAIL_SENT)
