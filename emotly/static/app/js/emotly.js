@@ -53,7 +53,7 @@ $(document).ready(function() {
   }
 
   // Customize the template for the PWA.
-  $('#navbrandtext').text('Update 20160508');
+  $('#navbrandtext').text('Update 20160519');
   $('#emotlybrand').attr('href', '/static/app/pwa');
   $('.liLogin').show();
 
@@ -80,13 +80,20 @@ $(document).ready(function() {
 
   // Populate the main list of emotlies.
   EmotlyService.getEmotlies().then(function(EmoArray) {
+    EmotlyStorageCache.putNewEmotlies(EmoArray);
+
     EmoArray.forEach(function(s_emotly) {
       setProgressBarStatus('success');
       prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
     });
   }).catch(function(e) {
-    setProgressBarStatus('danger');
-    showAlert('danger', `Error getting the latest emotlies: ${e.message}`, 10);
+    setProgressBarStatus('warning'); // We give the impression everything's ok.
+    showAlert('warning', 'Limited connectivity');
+    EmotlyStorageCache.fetchCachedEmotlies().then(function(all_emotlies) {
+      all_emotlies.forEach(function(s_emotly) {
+        prependEmotly(s_emotly.nickname, s_emotly.timestamp, s_emotly.mood);
+      })
+    })
   });
 
   // Update the global list of all the available moods.

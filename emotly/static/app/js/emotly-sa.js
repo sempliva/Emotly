@@ -266,3 +266,47 @@ class EmotlyService {
   } /* postNewEmotly() */
 
 } /* class EmotlyService */
+
+/*
+ * This represents the client backing store for Emotlies and Moods.
+ * It's meant to be used indipendently as it is not coupled in any way with
+ * the EmotlyService class.
+ */
+class EmotlyStorageCache {
+  static putNewEmotlies(emotlies_batch) {
+    var emotlyDBStore = new IDBStore({
+
+      dbVersion: 1,
+      storeName: 'emotly_emotlies',
+      keyPath: 'id',
+      autoIncrement: true,
+      onStoreReady: function() {
+        emotlyDBStore.clear(function() {
+          emotlyDBStore.putBatch(emotlies_batch);
+        });
+      } /* onStoreReadh */
+    }); /* new emotlyDBStore() */
+  } /* putNewEmotlies() */
+
+  /*
+   * Fetch whatever Emotly we have available in IDB.
+   */
+  static fetchCachedEmotlies() {
+    return new Promise(function(resolve, reject) {
+      var cachedEmotlyArray = new Array();
+
+      var emotlyDBStore = new IDBStore({
+        dbVersion: 1,
+        storeName: 'emotly_emotlies',
+        keyPath: 'id',
+        autoIncrement: true,
+        onStoreReady: function() {
+          emotlyDBStore.getAll(function(all_cached_emotlies) {
+            resolve(all_cached_emotlies.sort(emotly_sort));
+          })
+        }
+      }); /* new emotlyDBStore() */
+    }); /* Promise */
+  } /* fetchCachedEmotlies() */
+
+} /* class EmotlyStorageCache */
