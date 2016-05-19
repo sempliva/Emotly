@@ -39,6 +39,7 @@ from emotly.models import User
 from functools import wraps
 from mongoengine import DoesNotExist
 from flask import request
+from urllib.parse import urlparse
 
 
 # Create the salt for the user registration.
@@ -190,6 +191,33 @@ def require_token(api_method):
         # If the request has no user token or it is not valid 403.
         return response_handler(403, CONSTANTS.UNAUTHORIZED)
     return check_api_key
+
+
+# Decorator used to require HTTPS.
+# If the app is in DEBUG mode and the hostaname is localhost the
+# request is considere secure.
+def require_https(api_method):
+    @wraps(api_method)
+    def check_api_key(*args, **kwargs):
+        url = urlparse(request.url)
+        if app.config['DEBUG'] and (url.hostname == "localhost" or
+                                    url.hostname == "127.0.0.1"):
+            return api_method(*args, **kwargs)
+        if not request.is_secure:
+            return response_handler(403, CONSTANTS.NOT_HTTPS_REQUEST)
+        return api_method(*args, **kwargs)
+    return check_api_key
+
+
+# This function is gonna be used to determine whether we're running in a
+# SECURE and LOCAL environment while in DEBUG. Mostly used during development.
+def should_override_security_restrictions(url):
+    if app.debug is False:
+        return False
+    if url.hostname != 'localhost' or url.hostname != '127.0.0.1':
+        return False
+
+    return True
 
 
 # Return the user from the jwt token.

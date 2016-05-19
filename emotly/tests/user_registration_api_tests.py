@@ -49,7 +49,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail='email@emailtest.com',
                                inputPassword='password'))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 200)
 
@@ -59,7 +59,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail='Email1@EMAILTEST.com',
                                inputPassword='password'))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         user = User.objects.get(nickname="nicknametest12")
         self.assertEqual(user.email, "Email1@EMAILTEST.com".lower())
@@ -69,7 +69,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
         data = json.dumps(dict(inputNickname="incompleterequest",
                                inputPassword="password"))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 500)
 
@@ -79,7 +79,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail="email@short.com",
                                inputPassword="password"))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 400)
 
@@ -89,7 +89,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail="email@short.com",
                                inputPassword="password"))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 400)
 
@@ -99,7 +99,7 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail="email@short.com ",
                                inputPassword="password"))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 400)
 
@@ -109,9 +109,20 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                                inputEmail="email@nicknametest1.com",
                                inputPassword="password"))
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
-                           data=data,
+                           base_url='https://localhost', data=data,
                            headers=headers)
         self.assertEqual(rv.status_code, 400)
+
+    # Test non-secure requests.
+    def test_signup_non_secure(self):
+        headers = {'content-type': 'application/json'}
+        data = json.dumps(dict(inputNickname='nicknametest',
+                               inputEmail='email@emailtest.com',
+                               inputPassword='password'))
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
+                           base_url='http://localhost', data=data,
+                           headers=headers)
+        self.assertEqual(rv.status_code, 403)

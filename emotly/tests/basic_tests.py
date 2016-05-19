@@ -65,5 +65,5 @@ class BasicEmotlyPageCase(unittest.TestCase):
         assert b'Your life, your emotions' in rv.data
 
     def test_emotly_signup(self):
-        rv = self.app.get('/signup')
+        rv = self.app.get('/signup', base_url='https://localhost')
         assert b'Signup' in rv.data

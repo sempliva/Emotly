@@ -53,8 +53,9 @@ class TokenTestCase(unittest.TestCase):
         token_string = generate_confirmation_token(u.email)
         u.confirmation_token = Token(token=token_string)
         u.save()
-        rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
-        assert b'Email Confirmed' in rv.data
+        rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
+                          base_url='https://localhost')
+        assert (CONSTANTS.EMAIL_CONFIRMED).encode('utf-8') in rv.data
 
     def test_update_at_after_confirm_email(self):
         u = User(nickname='testupdateat',
@@ -64,7 +65,8 @@ class TokenTestCase(unittest.TestCase):
         token_string = generate_confirmation_token(u.email)
         u.confirmation_token = Token(token=token_string)
         u.save()
-        rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
+        rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
+                          base_url='https://localhost')
         user = User.objects.only("update_at").get(pk=u.id)
         self.assertTrue(user.update_at)
 
@@ -78,8 +80,9 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         confirm_registration_email(u.confirmation_token.token)
 
-        rv = self.app.get("/confirm_email/" + token_string)
-        assert b'Error in confirming email.' in rv.data
+        rv = self.app.get("/confirm_email/" + token_string,
+                          base_url='https://localhost')
+        assert (CONSTANTS.ERROR_IN_CONFIRMING_EMAIL).encode('utf-8') in rv.data
 
     def test_cannot_confirm_email_token_too_old(self):
         u = User(nickname='confirmemail',
@@ -91,8 +94,9 @@ class TokenTestCase(unittest.TestCase):
                                      created_at=datetime.datetime.now() -
                                      datetime.timedelta(days=2))
         u.save()
-        rv = self.app.get("/confirm_email/" + u.confirmation_token.token)
-        assert b'Error in confirming email' in rv.data
+        rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
+                          base_url='https://localhost')
+        assert (CONSTANTS.ERROR_IN_CONFIRMING_EMAIL).encode('utf-8') in rv.data
 
     # Test resend confirmation token
     def test_resend_token_confirmation_email(self):
@@ -110,7 +114,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         data = {'user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
     def test_resend_token_confirmation_nickname(self):
@@ -128,7 +133,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         data = {'user_id': u.nickname}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
     def test_resend_token_confirmation_sent_in_the_last_x_minutes(self):
@@ -143,7 +149,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         data = {'user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 400)
 
     def test_cannot_resend_token_confirmation_user_email_not_exists(self):
@@ -154,7 +161,8 @@ class TokenTestCase(unittest.TestCase):
                  salt="salt")
         data = {'user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 404)
 
     def test_cannot_resend_token_confirmation_user_nickname_not_exists(self):
@@ -165,7 +173,8 @@ class TokenTestCase(unittest.TestCase):
                  salt="salt")
         data = {'user_id': u.nickname}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 404)
 
     def test_cannot_resend_token_confirmation_user_already_confirmed(self):
@@ -178,7 +187,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         data = {'user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 400)
 
     def test_resend_token_confirmation_is_token_created_at_updated(self):
@@ -198,7 +208,8 @@ class TokenTestCase(unittest.TestCase):
 
         data = {'user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
 
         user2 = User.objects.get(email=u.email)
         self.assertNotEqual(user.confirmation_token.created_at,
@@ -214,7 +225,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         data = {'this_is_not_user_id': u.email}
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation', data=json.dumps(data))
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 500)
 
     def test_resend_token_confirmation_json_data_not_valid(self):
@@ -238,5 +250,37 @@ class TokenTestCase(unittest.TestCase):
                  salt="salt")
         u.save()
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
-                          '/resend_email_confirmation')
+                          '/resend_email_confirmation',
+                          base_url='https://localhost')
         self.assertEqual(rv.status_code, 500)
+
+    # Test non-secure requests.
+    def test_confirm_email_not_secure(self):
+        u = User(nickname='test12345678910',
+                 email='test3@example.com',
+                 password="FakeUserPassword123",
+                 salt="salt")
+        token_string = generate_confirmation_token(u.email)
+        u.confirmation_token = Token(token=token_string)
+        u.save()
+        rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
+                          base_url='http://localhost')
+
+    def test_resend_token_confirmation_email_not_secure(self):
+        u = User(nickname='resendtoken',
+                 email='resend_token@example.com',
+                 password="FakeUserPassword123",
+                 confirmed_email=False,
+                 last_login=datetime.datetime.now(),
+                 salt="salt")
+        token_string = generate_confirmation_token(u.email)
+        u.confirmation_token = Token(
+            token=token_string, created_at=datetime.datetime.now() -
+            datetime.timedelta(minutes=CONSTANTS.MINUTES_SINCE_LAST_EMAIL +
+                               15))
+        u.save()
+        data = {'user_id': u.email}
+        rv = self.app.get(CONSTANTS.REST_API_PREFIX +
+                          '/resend_email_confirmation', data=json.dumps(data),
+                          base_url='http://localhost')
+        assert (CONSTANTS.NOT_HTTPS_REQUEST).encode('utf-8') in rv.data

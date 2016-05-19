@@ -22,18 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from emotly import constants as CONSTANTS
 import datetime
 import json
+from emotly import app
+from emotly import constants as CONSTANTS
+from emotly.models import User, Token
+from emotly.utils import *
 from flask import Blueprint, request, render_template
 from flask import flash, make_response
-from emotly.models import User, Token
 from mongoengine import DoesNotExist, NotUniqueError, ValidationError
-from emotly.utils import get_salt, hash_password
-from emotly.utils import generate_confirmation_token
-from emotly.utils import send_email_confirmation, send_welcome_email
-from emotly.utils import generate_jwt_token, is_user_confirmed
-from emotly.utils import response_handler, valid_json
+from urllib.parse import urlparse
 
 
 # User Controller
@@ -43,9 +41,8 @@ user_controller = Blueprint('user_controller', __name__)
 # Verify user credential and return a JWT Token if
 # the user has access to the system.
 @user_controller.route(CONSTANTS.REST_API_PREFIX + "/login", methods=["POST"])
+@require_https
 def login():
-    if not request.is_secure:
-        return response_handler(403, CONSTANTS.NOT_HTTPS_REQUEST)
     try:
         # Retrieve json data and user data.
         data = json.loads(request.data.decode('utf-8'))
@@ -76,6 +73,10 @@ def login():
 
 @user_controller.route("/signup", methods=["GET", "POST"])
 def signup():
+    if not should_override_security_restrictions(urlparse(request.url)) and\
+       not request.is_secure:
+        flash(CONSTANTS.NOT_HTTPS_REQUEST)
+        return render_template("page-home.html")
     if request.method == "GET":
         return render_template("page-signup.html")
     try:
@@ -94,6 +95,7 @@ def signup():
 # Accepts JSON data containing nickname, email and password.
 # TODO: Add security check (number of call?).
 @user_controller.route(CONSTANTS.REST_API_PREFIX + "/signup", methods=["POST"])
+@require_https
 def signup_api():
     try:
         register_user(request)
@@ -139,6 +141,10 @@ def register_user(req):
 # with the link to the progressive web app.
 @user_controller.route("/confirm_email/<confirmation_token>", methods=['GET'])
 def confirm_email(confirmation_token):
+    if not should_override_security_restrictions(urlparse(request.url)) and\
+       not request.is_secure:
+        flash(CONSTANTS.NOT_HTTPS_REQUEST)
+        return render_template("page-home.html")
     try:
         confirm_registration_email(confirmation_token)
         flash(CONSTANTS.EMAIL_CONFIRMED)
@@ -153,6 +159,7 @@ def confirm_email(confirmation_token):
 @user_controller.route(CONSTANTS.REST_API_PREFIX +
                        '/resend_email_confirmation', methods=['GET'])
 @valid_json
+@require_https
 def resend_email_confirmation(**kwargs):
     try:
         data = kwargs['data']

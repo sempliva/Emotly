@@ -29,7 +29,7 @@ from flask.ext.mongoengine import MongoEngine
 from emotly.models import User, Emotly, MOOD
 from mongoengine import DoesNotExist
 from emotly.utils import get_user_from_jwt_token, response_handler
-from emotly.utils import require_token, valid_json
+from emotly.utils import require_token, valid_json, require_https
 
 
 # Emotly Controller
@@ -39,6 +39,7 @@ emotly_controller = Blueprint('emotly_controller', __name__)
 # Retrieve the emotlies list.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies',
                          methods=['GET'])
+@require_https
 def list_emotlies():
     try:
         emotlies = Emotly.objects.all()
@@ -52,6 +53,7 @@ def list_emotlies():
 # Retrieve the current user's emotlies list.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies/own',
                          methods=['GET'])
+@require_https
 @require_token
 def list_own_emotlies(**kwargs):
     try:
@@ -65,6 +67,7 @@ def list_own_emotlies(**kwargs):
 # Create a new emotly for the current user.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/emotlies/new',
                          methods=['POST'])
+@require_https
 @require_token
 @valid_json
 def post_new_emotly(**kwargs):
@@ -85,6 +88,7 @@ def post_new_emotly(**kwargs):
 # Retrieve a specific emotly.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX +
                          '/emotlies/show/<emotly_id>', methods=['GET'])
+@require_https
 @require_token
 def get_emotly(emotly_id, **kwargs):
     try:
@@ -98,6 +102,7 @@ def get_emotly(emotly_id, **kwargs):
 
 # Retrieve the list of moods.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/moods', methods=['GET'])
+@require_https
 def list_moods():
     try:
         formatted_mood = [{"id": k, "value": v} for k, v in MOOD.items()]
