@@ -94,7 +94,7 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
                            headers=headers, data=json.dumps(m),
                            base_url='https://localhost')
-        assert (CONSTANTS.INVALID_JSON_DATA).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.INVALID_JSON_DATA.encode('utf-8'), rv.data)
 
     def test_post_emotly_json_data_not_valid(self):
         u = User(nickname='testpost2',
@@ -110,7 +110,7 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
                            headers=headers, data="this is not json",
                            base_url='https://localhost')
-        assert (CONSTANTS.INTERNAL_SERVER_ERROR).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.INTERNAL_SERVER_ERROR.encode('utf-8'), rv.data)
 
     def test_post_emotly_no_json_data(self):
         u = User(nickname='testpost3',
@@ -125,7 +125,7 @@ class RESTAPITestCase(unittest.TestCase):
                    'X-Emotly-Auth-Token': token}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + "/emotlies/new",
                            headers=headers, base_url='https://localhost')
-        assert (CONSTANTS.INVALID_JSON_DATA).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.INVALID_JSON_DATA.encode('utf-8'), rv.data)
 
     # Success tests.
     def test_post_emotly(self):

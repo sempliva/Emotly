@@ -1,0 +1,4 @@
+Emotly Test Suite
+
+To add a new testcase just name the file test_SOMETHING.py, eg. test_dummy.py
+Our TestRunner will discover and add the new test case automatically.

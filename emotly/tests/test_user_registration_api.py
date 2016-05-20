@@ -40,9 +40,6 @@ class UserRegistrationAPITestCase(unittest.TestCase):
         User.objects.delete()
         pass
 
-    def test_dummy(self):
-        assert True
-
     def test_signup(self):
         headers = {'content-type': 'application/json'}
         data = json.dumps(dict(inputNickname='nicknametest',
