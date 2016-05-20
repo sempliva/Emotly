@@ -22,44 +22,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# Emotly Test Suite
+# Emotly Test Runner
 
+import glob
+import pep8
 import unittest
 from emotly import app
-from emotly.tests.basic_tests import BasicEmotlyPageCase
-from emotly.tests.user_model_tests import UserModelTestCase
-from emotly.tests.token_model_tests import TokenModelTestCase
-from emotly.tests.emotly_model_tests import EmotlyModelTestCase
-from emotly.tests.jwt_token_tests import JWTTokenTestCases
-from emotly.tests.user_registration_tests import UserRegistrationTestCase
-from emotly.tests.rest_api_tests import RESTAPITestCase
-from emotly.tests.user_login_tests import LoginTestCases
-from emotly.tests.user_registration_api_tests import \
-    UserRegistrationAPITestCase
-from emotly.tests.token_related_tests import TokenTestCase
 
-# Creating a test suites.
-emotly_basic_suite = unittest.TestSuite()
-emotly_model_suite = unittest.TestSuite()
-emotly_controller_suite = unittest.TestSuite()
 
-# Adding test cases to emotly basic test suite.
-emotly_basic_suite.addTest(unittest.makeSuite(BasicEmotlyPageCase))
+def run_pep8_style_check():
+    s = pep8.StyleGuide(quiet=False, config_file='style.cfg')
+    res = s.check_files(glob.glob('**/*.py', recursive=True))
+    if res.total_errors:
+        print("\n\n*** Emotly Style Checker: found %s style errors!\n" %
+              res.total_errors)
 
-# Adding test cases to emotly model test suite.
-emotly_model_suite.addTest(unittest.makeSuite(TokenModelTestCase))
-emotly_model_suite.addTest(unittest.makeSuite(UserModelTestCase))
-emotly_model_suite.addTest(unittest.makeSuite(EmotlyModelTestCase))
 
-# Adding test cases to emotly controller test suite.
-emotly_controller_suite.addTest(unittest.makeSuite(UserRegistrationTestCase))
-emotly_controller_suite.addTest(unittest.
-                                makeSuite(UserRegistrationAPITestCase))
-emotly_controller_suite.addTest(unittest.makeSuite(JWTTokenTestCases))
-emotly_controller_suite.addTest(unittest.makeSuite(LoginTestCases))
-emotly_controller_suite.addTest(unittest.makeSuite(RESTAPITestCase))
-emotly_controller_suite.addTest(unittest.makeSuite(TokenTestCase))
+def run_emotly_tests():
+    test_loader = unittest.defaultTestLoader
+    tests = test_loader.discover('emotly/tests', pattern='test*.py')
+
+    # unittest.TextTestRunner suppresses warnings by default and we have many
+    # DeprecationWarnings due to MongoEngine.
+    # In order to re-enable the warnings, run the TestRunner with -Wd, eg:
+    # python -Wd run_tests.py
+    #
+    # TODO: Re-enable warnings by default by using the argument
+    # warnings='default' in TextTestRunner().
+    test_runner = unittest.TextTestRunner()
+    test_runner.run(tests)
+
 
 if __name__ == '__main__':
     assert app.debug is False, 'Don\'t run in debug mode.'
-    unittest.main()
+
+    run_emotly_tests()
+    run_pep8_style_check()

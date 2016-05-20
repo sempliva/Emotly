@@ -55,7 +55,7 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
                           base_url='https://localhost')
-        assert (CONSTANTS.EMAIL_CONFIRMED).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.EMAIL_CONFIRMED.encode('utf-8'), rv.data)
 
     def test_update_at_after_confirm_email(self):
         u = User(nickname='testupdateat',
@@ -82,7 +82,8 @@ class TokenTestCase(unittest.TestCase):
 
         rv = self.app.get("/confirm_email/" + token_string,
                           base_url='https://localhost')
-        assert (CONSTANTS.ERROR_IN_CONFIRMING_EMAIL).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.ERROR_IN_CONFIRMING_EMAIL.encode('utf-8'),
+                      rv.data)
 
     def test_cannot_confirm_email_token_too_old(self):
         u = User(nickname='confirmemail',
@@ -96,7 +97,8 @@ class TokenTestCase(unittest.TestCase):
         u.save()
         rv = self.app.get("/confirm_email/" + u.confirmation_token.token,
                           base_url='https://localhost')
-        assert (CONSTANTS.ERROR_IN_CONFIRMING_EMAIL).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.ERROR_IN_CONFIRMING_EMAIL.encode('utf-8'),
+                      rv.data)
 
     # Test resend confirmation token
     def test_resend_token_confirmation_email(self):
@@ -283,4 +285,4 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='http://localhost')
-        assert (CONSTANTS.NOT_HTTPS_REQUEST).encode('utf-8') in rv.data
+        self.assertIn(CONSTANTS.NOT_HTTPS_REQUEST.encode('utf-8'), rv.data)
