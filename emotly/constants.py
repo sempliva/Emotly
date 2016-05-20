@@ -36,9 +36,10 @@ REST_API_PREFIX = '/api/1.0'  # No trailing slash, please.
 
 # Rest API response content.
 USER_NOT_CONFIRMED = 'User error.'
-USER_DOES_NOT_EXIST = 'Authentication error.'
+AUTHENTICATION_ERROR = 'Authentication error.'
 
 EMOTLY_DOES_NOT_EXIST = 'Emotly error.'
+USER_DOES_NOT_EXIST = 'User does not exist.'
 
 UNAUTHORIZED = 'Unauthorized access.'
 INTERNAL_SERVER_ERROR = 'Internal server error.'

@@ -100,6 +100,23 @@ def get_emotly(emotly_id, **kwargs):
     return response_handler(200, emotly.serialize(), 'emotly')
 
 
+# Retrieve the last emotly of a specific user.
+@emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/user/<nickname>',
+                         methods=['GET'])
+@require_https
+def get_user_details_last_emotly(nickname, **kwargs):
+    try:
+        u = User.objects.get(nickname__iexact=nickname)
+        emotly = Emotly.objects(user=u.id).order_by("-created_at").first()
+        if emotly is None:
+            return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
+    except DoesNotExist:
+        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+    except Exception:
+        return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
+    return response_handler(200, emotly.serialize(), 'emotly')
+
+
 # Retrieve the list of moods.
 @emotly_controller.route(CONSTANTS.REST_API_PREFIX + '/moods', methods=['GET'])
 @require_https
