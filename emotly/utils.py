@@ -194,14 +194,12 @@ def require_token(api_method):
 
 
 # Decorator used to require HTTPS.
-# If the app is in DEBUG mode and the hostaname is localhost the
-# request is considere secure.
+# If the app is being run in DEBUG mode on localhost, the
+# request is to be considered secure.
 def require_https(api_method):
     @wraps(api_method)
     def check_api_key(*args, **kwargs):
-        url = urlparse(request.url)
-        if app.config['DEBUG'] and (url.hostname == "localhost" or
-                                    url.hostname == "127.0.0.1"):
+        if should_override_security_restrictions(urlparse(request.url)):
             return api_method(*args, **kwargs)
         if not request.is_secure:
             return response_handler(403, CONSTANTS.NOT_HTTPS_REQUEST)
@@ -214,7 +212,7 @@ def require_https(api_method):
 def should_override_security_restrictions(url):
     if app.debug is False:
         return False
-    if url.hostname != 'localhost' or url.hostname != '127.0.0.1':
+    if url.hostname != 'localhost' and url.hostname != '127.0.0.1':
         return False
 
     return True
