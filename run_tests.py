@@ -56,5 +56,5 @@ def run_emotly_tests():
 if __name__ == '__main__':
     assert app.debug is False, 'Don\'t run in debug mode.'
 
-    run_emotly_tests()
     run_pep8_style_check()
+    run_emotly_tests()
