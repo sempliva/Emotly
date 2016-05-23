@@ -100,6 +100,22 @@ class UserRegistrationAPITestCase(unittest.TestCase):
                            headers=headers)
         self.assertEqual(rv.status_code, 400)
 
+        data = json.dumps(dict(inputNickname="spaceinemail",
+                               inputEmail="email@short .com",
+                               inputPassword="password"))
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
+                           base_url='https://localhost', data=data,
+                           headers=headers)
+        self.assertEqual(rv.status_code, 400)
+
+        data = json.dumps(dict(inputNickname="spaceinemail",
+                               inputEmail="email @short.com",
+                               inputPassword="password"))
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/signup',
+                           base_url='https://localhost', data=data,
+                           headers=headers)
+        self.assertEqual(rv.status_code, 400)
+
     def test_signup_user_exist(self):
         headers = {'content-type': 'application/json'}
         data = json.dumps(dict(inputNickname="nicknametest1",

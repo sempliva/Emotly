@@ -35,6 +35,9 @@ from emotly.utils import generate_jwt_token
 
 # Tests for Emotly REST API.
 class RESTAPITestCase(unittest.TestCase):
+    NUM_ELEMENT_2 = 2
+    NUM_ELEMENT_3 = 3
+
     def setUp(self):
         self.app = app.test_client()
 
@@ -417,9 +420,19 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "/emotlies",
                           base_url='https://localhost')
         data = json.loads(rv.data.decode('utf-8'))
+
+        # Number of key element in the json dictionary returned
+        # by the rest api method
+        self.assertEqual(len(data["emotlies"][0].keys()), self.NUM_ELEMENT_3)
+
         self.assertIsNotNone(data["emotlies"][0]["nickname"])
+        self.assertEqual(type(data["emotlies"][0]["nickname"]), str)
+
         self.assertIsNotNone(data["emotlies"][0]["mood"])
+        self.assertEqual(type(data["emotlies"][0]["mood"]), str)
+
         self.assertIsNotNone(data["emotlies"][0]["created_at"])
+        self.assertEqual(type(data["emotlies"][0]["created_at"]), str)
 
     def test_response_get_emotlies(self):
         u = User(nickname='testget',
@@ -442,8 +455,15 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + "/emotlies/own",
                           headers=headers, base_url='https://localhost')
         data = json.loads(rv.data.decode('utf-8'))
+
+        # Number of key element in the json dictionary returned
+        # by the rest api method
+        self.assertEqual(len(data["emotlies"][0].keys()), self.NUM_ELEMENT_2)
+
         self.assertIsNotNone(data["emotlies"][0]["mood"])
+        self.assertEqual(type(data["emotlies"][0]["mood"]), str)
         self.assertIsNotNone(data["emotlies"][0]["created_at"])
+        self.assertEqual(type(data["emotlies"][0]["created_at"]), str)
 
     def test_response_get_emotly(self):
         u = User(nickname='testgetsingle',
@@ -463,8 +483,14 @@ class RESTAPITestCase(unittest.TestCase):
                           str(emotly.id), headers=headers,
                           base_url='https://localhost')
         data = json.loads(rv.data.decode('utf-8'))
+        # Number of key element in the json dictionary returned
+        # by the rest api method
+        self.assertEqual(len(data["emotly"].keys()), self.NUM_ELEMENT_2)
+
         self.assertIsNotNone(data["emotly"]["mood"])
+        self.assertEqual(type(data["emotly"]["mood"]), str)
         self.assertIsNotNone(data["emotly"]["created_at"])
+        self.assertEqual(type(data["emotly"]["created_at"]), str)
 
     def test_not_confirmed_user_get_emotly(self):
         u = User(nickname='testgetsinglenc',
@@ -587,7 +613,18 @@ class RESTAPITestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/user/' + u.nickname,
                           headers=headers, base_url='https://localhost')
         data = json.loads(rv.data.decode('utf-8'))
+
+        # Number of key element in the json dictionary returned
+        # by the rest api method
+        self.assertEqual(len(data["emotly"].keys()), self.NUM_ELEMENT_3)
+
         self.assertEqual(data["emotly"]["nickname"], u.nickname)
+        self.assertIsNotNone(data["emotly"]["nickname"])
+        self.assertEqual(type(data["emotly"]["nickname"]), str)
+
+        self.assertIsNotNone(data["emotly"]["mood"])
         self.assertEqual(data["emotly"]["mood"], MOOD[1])
+        self.assertEqual(type(data["emotly"]["mood"]), str)
+
         self.assertEqual(data["emotly"]["created_at"],
                          e.created_at.strftime(CONSTANTS.DATE_FORMAT))
