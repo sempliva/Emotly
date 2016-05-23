@@ -26,6 +26,7 @@ SOFTWARE.
 
 import glob
 import pep8
+import sys
 import unittest
 from emotly import app
 
@@ -38,6 +39,7 @@ def run_pep8_style_check():
               res.total_errors)
 
 
+# Loads all the tests in the emotly/tests directory.
 def run_emotly_tests():
     test_loader = unittest.defaultTestLoader
     tests = test_loader.discover('emotly/tests', pattern='test*.py')
@@ -50,11 +52,12 @@ def run_emotly_tests():
     # TODO: Re-enable warnings by default by using the argument
     # warnings='default' in TextTestRunner().
     test_runner = unittest.TextTestRunner()
-    test_runner.run(tests)
+    result = test_runner.run(tests)
+    return not result.wasSuccessful()
 
 
 if __name__ == '__main__':
     assert app.debug is False, 'Don\'t run in debug mode.'
 
     run_pep8_style_check()
-    run_emotly_tests()
+    sys.exit(run_emotly_tests())
