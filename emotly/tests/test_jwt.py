@@ -33,50 +33,37 @@ from emotly.utils import generate_confirmation_token
 from emotly.utils import generate_jwt_token, verify_jwt_token
 
 
-# TODO: Add more coverage for JWT.
+# TODO: Add more coverage. For example: stale token, valid
+#       and invalid storek tokens, etc...
 class JWTTokenTestCases(unittest.TestCase):
+
     def setUp(self):
         self.app = app.test_client()
+        self.regular_user = User(nickname='confirmemail',
+                                 email='test_confirm_email@example.com',
+                                 password="FakeUserPassword123",
+                                 salt="salt")
+        self.regular_token = generate_jwt_token(self.regular_user)
 
     def tearDown(self):
-        User.objects.delete()
+        pass
 
-    def test_gen_JWT_token(self):
-        u = User(nickname='confirmemail',
-                 email='test_confirm_email@example.com',
-                 password="FakeUserPassword123",
-                 last_login=datetime.datetime.now(),
-                 salt="salt")
-        token = generate_jwt_token(u)
-        self.assertIsNotNone(token)
+    def test_generated_jwt_not_none(self):
+        self.assertIsNotNone(self.regular_token)
 
-    def test_verify_JWT_valid_token(self):
-        u = User(nickname='confirmemail',
-                 email='test_confirm_email@example.com',
-                 password="FakeUserPassword123",
-                 last_login=datetime.datetime.now(),
-                 salt="salt")
-        token = generate_jwt_token(u)
-        self.assertTrue(verify_jwt_token(str(token)))
+    def test_generated_jwt_verified(self):
+        self.assertTrue(verify_jwt_token(str(self.regular_token)))
 
-    def test_verify_JWT_invalid_token(self):
-        u = User(nickname='confirmemail',
-                 email='test_confirm_email@example.com',
-                 password="FakeUserPassword123",
-                 last_login=datetime.datetime.now(),
-                 salt="salt")
-        token = generate_jwt_token(u)
-        token = json.loads(token)
+    def test_hijacked_token(self):
+        token = json.loads(self.regular_token)
         token["payload"]["nickname"] = "iwanttohack"
         token = json.dumps(token)
+
         self.assertFalse(verify_jwt_token(str(token)))
 
     def test_verify_JWT_expired_token(self):
         expired_time = datetime.datetime.now() - datetime.timedelta(hours=1000)
-        u = User(nickname='confirmemail',
-                 email='test_confirm_email@example.com',
-                 password="FakeUserPassword123",
-                 last_login=expired_time,
-                 salt="salt")
-        token = generate_jwt_token(u)
-        self.assertFalse(verify_jwt_token(str(token)))
+        self.regular_user.last_login = expired_time
+        regenerated_token = generate_jwt_token(self.regular_user)
+
+        self.assertFalse(verify_jwt_token(str(regenerated_token)))
