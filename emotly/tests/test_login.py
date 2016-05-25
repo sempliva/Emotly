@@ -37,12 +37,12 @@ from emotly.utils import verify_jwt_token, hash_password
 class LoginTestCases(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
+        self.salt = get_salt()
 
     def tearDown(self):
         User.objects.delete()
 
     def test_login_email_success(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -58,7 +58,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_last_login_date_updated(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -81,7 +80,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertNotEqual(user.last_login, user2.last_login)
 
     def test_login_nickname_success(self):
-        salt = get_salt()
         u = User(nickname='testnickname',
                  email='email2@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -97,7 +95,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_login_nickname_case_insensitive_success(self):
-        salt = get_salt()
         u = User(nickname='testnickname',
                  email='email2@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -113,7 +110,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_login_nickname_case_insensitive2_success(self):
-        salt = get_salt()
         u = User(nickname='TESTnickname',
                  email='email2@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -129,7 +125,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_login_email_case_insensitive_success(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='Email@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -145,7 +140,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_login_email_case_insensitive2_success(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -161,7 +155,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
 
     def test_login_non_secure(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtest.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -177,7 +170,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 403)
 
     def test_login_email_fail(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@emailtestwrong.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -193,7 +185,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 403)
 
     def test_login_nickname_fail(self):
-        salt = get_salt()
         u = User(nickname='testnfail',
                  email='email22@emailtestwrong.com',
                  password=hash_password("password".encode('utf-8'), salt),
@@ -218,7 +209,6 @@ class LoginTestCases(unittest.TestCase):
         self.assertEqual(rv.status_code, 404)
 
     def test_login_email_not_confirmed(self):
-        salt = get_salt()
         u = User(nickname='test12345678910',
                  email='email@notconfirmed.com',
                  password=hash_password("password".encode('utf-8'), salt),
