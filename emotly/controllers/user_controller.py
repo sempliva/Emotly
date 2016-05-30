@@ -46,6 +46,8 @@ def login():
     try:
         # Retrieve json data and user data.
         data = json.loads(request.data.decode('utf-8'))
+        data['user_id'] = ''.join(data['user_id'].split())
+
         if '@' in data['user_id']:
             user = User.objects.get(email__iexact=data['user_id'])
         else:
@@ -164,6 +166,7 @@ def resend_email_confirmation(**kwargs):
     try:
         data = kwargs['data']
         # Get user by email or nickname.
+        data['user_id'] = ''.join(data['user_id'].split())
         if '@' in data['user_id']:
             user = User.objects.only('confirmed_email',
                                      'confirmation_token', 'email'). \

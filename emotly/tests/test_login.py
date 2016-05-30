@@ -160,6 +160,66 @@ class LoginTestCases(unittest.TestCase):
                            base_url='https://localhost')
         self.assertEqual(rv.status_code, 200)
 
+    def test_login_space_in_nickname(self):
+        salt = get_salt()
+        u = User(nickname='testnickname',
+                 email='email2@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'testnickname ',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+        user_data = {'user_id': 'testn  ickname',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+        user_data = {'user_id': '  testnickname',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_login_space_in_email(self):
+        salt = get_salt()
+        u = User(nickname='test12345678910',
+                 email='email@emailtest.com',
+                 password=hash_password("password".encode('utf-8'), salt),
+                 confirmed_email=True,
+                 salt="salt")
+        u.save()
+
+        user_data = {'user_id': 'email@emailtest.com ',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+        user_data = {'user_id': 'email@emailtest. com',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
+        user_data = {'user_id': 'email @emailtest.com',
+                     'password': 'password'}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
+                           data=json.dumps(user_data),
+                           base_url='https://localhost')
+        self.assertEqual(rv.status_code, 200)
+
     def test_login_non_secure(self):
         salt = get_salt()
         u = User(nickname='test12345678910',
