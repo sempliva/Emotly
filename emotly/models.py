@@ -60,18 +60,25 @@ MOOD = {1: "sad", 2: "happy", 3: "proud", 4: "tired", 5: "hopeful",
         18: "bored", 19: "lucky", 20: "inspired"}
 
 
+class Location(db.EmbeddedDocument):
+    coord = db.PointField(required=False)
+    accuracy = db.FloatField(required=False)
+    location_name = db.StringField(min_length=3, required=False)
+
+
 class Emotly(db.Document):
     mood = db.IntField(required=True, choices=list(MOOD))
     user = db.ReferenceField(User, required=True)
     created_at = db.DateTimeField(default=datetime.datetime.now)
+    geodata = db.EmbeddedDocumentField(Location)
 
-    # TODO Change in something better.
     # Serialize object formatting date and mood and user if present.
     def serialize(self):
+        dictionary = {'mood': MOOD[self.mood],
+                      'created_at': self.created_at.strftime(
+                          CONSTANTS.DATE_FORMAT)}
         if self.user:
-            return {'mood': MOOD[self.mood],
-                    'created_at': self.created_at
-                    .strftime(CONSTANTS.DATE_FORMAT),
-                    'nickname': self.user.nickname}
-        return {'mood': MOOD[self.mood],
-                'created_at': self.created_at.strftime(CONSTANTS.DATE_FORMAT)}
+            dictionary['nickname'] = self.user.nickname
+        if self.geodata:
+            dictionary['coord'] = self.geodata.to_mongo().to_dict()
+        return dictionary
