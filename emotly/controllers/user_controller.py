@@ -85,9 +85,9 @@ def signup():
         register_user(request)
         flash(CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL)
     except ValidationError:
-        flash(CONSTANTS.REGISTRAION_ERROR_INVALID_DATA, 'Error')
+        flash(CONSTANTS.REGISTRATION_ERROR_INVALID_DATA, 'Error')
     except NotUniqueError:
-        flash(CONSTANTS.REGISTRAION_ERROR_USER_EXISTS, 'Error')
+        flash(CONSTANTS.REGISTRATION_ERROR_USER_EXISTS, 'Error')
     except Exception:
         flash(CONSTANTS.INTERNAL_SERVER_ERROR, 'Error')
     return render_template("page-home.html")
@@ -104,9 +104,9 @@ def signup_api():
         return response_handler(200,
                                 CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL)
     except ValidationError:
-        return response_handler(400, CONSTANTS.REGISTRAION_ERROR_INVALID_DATA)
+        return response_handler(400, CONSTANTS.REGISTRATION_ERROR_INVALID_DATA)
     except NotUniqueError:
-        return response_handler(400, CONSTANTS.REGISTRAION_ERROR_USER_EXISTS)
+        return response_handler(400, CONSTANTS.REGISTRATION_ERROR_USER_EXISTS)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
 

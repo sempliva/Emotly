@@ -58,6 +58,7 @@ USER_ALREADY_CONFIRMED = 'User already Confirmed.'
 EMAIL_CONFIRMED = 'Email Confirmed.'
 
 # Error Flash sessages.
-REGISTRAION_ERROR_INVALID_DATA = 'Registration error: Please insert valid data'
-REGISTRAION_ERROR_USER_EXISTS = 'Registration error: User already exist!'
+REGISTRATION_ERROR_INVALID_DATA = 'Registration error: ' + \
+                                  'Please insert valid data'
+REGISTRATION_ERROR_USER_EXISTS = 'Registration error: User already exist!'
 ERROR_IN_CONFIRMING_EMAIL = 'Error in confirming email.'

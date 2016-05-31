@@ -78,7 +78,7 @@ class UserRegistrationTestCase(unittest.TestCase):
                                inputEmail="email@short.com",
                                inputPassword="password"),
                            follow_redirects=True)
-        self.assertIn(CONSTANTS.REGISTRAION_ERROR_INVALID_DATA.
+        self.assertIn(CONSTANTS.REGISTRATION_ERROR_INVALID_DATA.
                       encode('utf-8'), rv.data)
 
     def test_cannot_signup_space_in_nickname(self):
@@ -89,7 +89,7 @@ class UserRegistrationTestCase(unittest.TestCase):
                                inputEmail="email@spase.com",
                                inputPassword="password"),
                            follow_redirects=True)
-        self.assertIn(CONSTANTS.REGISTRAION_ERROR_INVALID_DATA.
+        self.assertIn(CONSTANTS.REGISTRATION_ERROR_INVALID_DATA.
                       encode('utf-8'), rv.data)
 
     def test_cannot_signup_space_in_email(self):
@@ -100,7 +100,7 @@ class UserRegistrationTestCase(unittest.TestCase):
                                inputEmail="email@spase.com ",
                                inputPassword="password"),
                            follow_redirects=True)
-        self.assertIn(CONSTANTS.REGISTRAION_ERROR_INVALID_DATA.
+        self.assertIn(CONSTANTS.REGISTRATION_ERROR_INVALID_DATA.
                       encode('utf-8'), rv.data)
 
     def test_signup_user_exist(self):
@@ -118,7 +118,7 @@ class UserRegistrationTestCase(unittest.TestCase):
                                inputEmail="email@nicknametest1.com",
                                inputPassword="password"),
                            follow_redirects=True)
-        self.assertIn(CONSTANTS.REGISTRAION_ERROR_USER_EXISTS.
+        self.assertIn(CONSTANTS.REGISTRATION_ERROR_USER_EXISTS.
                       encode('utf-8'), rv.data)
 
     # Test non-secure requests.
