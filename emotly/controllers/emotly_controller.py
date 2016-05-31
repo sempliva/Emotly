@@ -42,7 +42,7 @@ emotly_controller = Blueprint('emotly_controller', __name__)
 @require_https
 def list_emotlies():
     try:
-        emotlies = Emotly.objects.all()
+        emotlies = Emotly.objects.only("user", "created_at", "mood").all()
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     # At the moment serialize mood, creation date of the mood
@@ -107,7 +107,8 @@ def get_emotly(emotly_id, **kwargs):
 def get_user_details_last_emotly(nickname, **kwargs):
     try:
         u = User.objects.get(nickname__iexact=nickname)
-        emotly = Emotly.objects(user=u.id).order_by("-created_at").first()
+        emotly = Emotly.objects(user=u.id).order_by("-created_at")\
+            .only("user", "created_at", "mood").first()
         if emotly is None:
             return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
     except DoesNotExist:
