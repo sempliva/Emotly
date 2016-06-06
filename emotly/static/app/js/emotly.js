@@ -53,7 +53,7 @@ $(document).ready(function() {
   }
 
   // Customize the template for the PWA.
-  $('#navbrandtext').text('Update 20160519');
+  $('#navbrandtext').text('Update 20160606');
   $('#emotlybrand').attr('href', '/static/app/pwa');
   $('.liLogin').show();
 
