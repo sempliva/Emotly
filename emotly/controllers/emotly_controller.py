@@ -26,7 +26,7 @@ import json
 from flask import Blueprint, request, flash
 from emotly import constants as CONSTANTS
 from flask.ext.mongoengine import MongoEngine
-from emotly.models import User, Emotly, MOOD
+from emotly.models import User, Emotly, MOOD, Location
 from mongoengine import DoesNotExist
 from emotly.utils import get_user_from_jwt_token, response_handler
 from emotly.utils import require_token, valid_json, require_https
@@ -42,7 +42,10 @@ emotly_controller = Blueprint('emotly_controller', __name__)
 @require_https
 def list_emotlies():
     try:
-        emotlies = Emotly.objects.only("user", "created_at", "mood").all()
+        emotlies = Emotly.objects.only("user",
+                                       "created_at",
+                                       "mood",
+                                       "geodata").all()
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     # At the moment serialize mood, creation date of the mood
@@ -58,7 +61,9 @@ def list_emotlies():
 def list_own_emotlies(**kwargs):
     try:
         user = kwargs['user']
-        emotlies = Emotly.objects(user=user.id).only("mood", "created_at")
+        emotlies = Emotly.objects(user=user.id).only("mood",
+                                                     "created_at",
+                                                     "geodata")
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return response_handler(200, [e.serialize() for e in emotlies], 'emotlies')
@@ -79,6 +84,14 @@ def post_new_emotly(**kwargs):
 
         emotly = Emotly(mood=data['mood'])
         emotly.user = user
+        if 'geodata' in data:
+            location = Location()
+            location.coord = data['geodata']['coord']
+            if 'accuracy' in data['geodata']:
+                location.accuracy = data['geodata']['accuracy']
+            if 'location_name' in data['geodata']:
+                location.location_name = data['geodata']['location_name']
+            emotly.geodata = location
         emotly.save()
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
@@ -92,7 +105,10 @@ def post_new_emotly(**kwargs):
 @require_token
 def get_emotly(emotly_id, **kwargs):
     try:
-        emotly = Emotly.objects.only("mood", "created_at").get(id=emotly_id)
+        emotly = Emotly.objects.only("mood",
+                                     "created_at",
+                                     "geodata",
+                                     "user").get(id=emotly_id)
     except DoesNotExist:
         return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
     except Exception:
@@ -108,7 +124,7 @@ def get_user_details_last_emotly(nickname, **kwargs):
     try:
         u = User.objects.get(nickname__iexact=nickname)
         emotly = Emotly.objects(user=u.id).order_by("-created_at")\
-            .only("user", "created_at", "mood").first()
+            .only("user", "created_at", "mood", "geodata").first()
         if emotly is None:
             return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
     except DoesNotExist:
