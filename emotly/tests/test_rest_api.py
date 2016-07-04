@@ -679,3 +679,38 @@ class RESTAPITestCase(unittest.TestCase):
 
         self.assertEqual(data["emotly"]["created_at"],
                          e.created_at.strftime(CONSTANTS.DATE_FORMAT))
+
+    def test_verify_jwt_api_succeed(self):
+        token = generate_jwt_token(self.u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/is_jwt_valid',
+                           headers=headers, base_url='https://localhost')
+
+        self.assertEqual(rv.status_code, 200)
+
+    def test_verify_jwt_api_token_expired(self):
+        u = User(nickname='testpostexpired',
+                 email='test_post_emotly_expired@example.com',
+                 password='FakeUserPassword123',
+                 confirmed_email=True,
+                 last_login=datetime.datetime.now() -
+                 datetime.timedelta(99999),
+                 salt='salt')
+        u.save()
+        token = generate_jwt_token(u)
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/is_jwt_valid',
+                           headers=headers, base_url='https://localhost')
+
+        self.assertEqual(rv.status_code, 200)
+
+    def test_verify_jwt_api_invalid_format(self):
+        token = 'invalid'
+        headers = {'content-type': 'application/json',
+                   'X-Emotly-Auth-Token': token}
+        rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/is_jwt_valid',
+                           headers=headers, base_url='https://localhost')
+
+        self.assertEqual(rv.status_code, 400)
