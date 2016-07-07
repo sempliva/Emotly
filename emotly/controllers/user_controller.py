@@ -157,6 +157,18 @@ def confirm_email(confirmation_token):
     return render_template("page-home.html")
 
 
+# This endpoint can be used to check the validity of a JWT token
+@user_controller.route(CONSTANTS.REST_API_PREFIX +
+                       '/is_jwt_valid', methods=['POST'])
+@require_https
+def is_jwt_valid():
+    auth_token = request.headers.get('X-Emotly-Auth-Token')
+    try:
+        return response_handler(200, verify_jwt_token(auth_token))
+    except:
+        return response_handler(400, CONSTANTS.INVALID_JSON_DATA)
+
+
 # This route is used to resend the confirmation email.
 @user_controller.route(CONSTANTS.REST_API_PREFIX +
                        '/resend_email_confirmation', methods=['GET'])
