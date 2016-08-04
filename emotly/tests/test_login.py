@@ -234,7 +234,8 @@ class LoginTestCases(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
                            data=json.dumps(user_data),
                            base_url='http://localhost')
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_REQUEST_INSECURE)
 
     def test_login_email_fail(self):
         salt = get_salt()
@@ -249,8 +250,9 @@ class LoginTestCases(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
-
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
     def test_login_nickname_fail(self):
         salt = get_salt()
@@ -265,8 +267,9 @@ class LoginTestCases(unittest.TestCase):
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/login',
                            data=json.dumps(user_data),
                            base_url='https://localhost')
-
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
     def test_login_user_not_registered(self):
         user_data = {'user_id': 'santaclaus@lostisland.com',
@@ -275,7 +278,8 @@ class LoginTestCases(unittest.TestCase):
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
-        self.assertEqual(rv.status_code, 404)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_USER_UNKNOW)
 
     def test_login_email_not_confirmed(self):
         salt = get_salt()
@@ -291,7 +295,8 @@ class LoginTestCases(unittest.TestCase):
                            data=json.dumps(user_data),
                            base_url='https://localhost')
 
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_USER_UNCONFIRMED)
 
     def test_login_missing_data(self):
         user_data = {'password': 'passwordwrong'}

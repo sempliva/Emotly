@@ -110,7 +110,7 @@ def get_emotly(emotly_id, **kwargs):
                                      "geodata",
                                      "user").get(id=emotly_id)
     except DoesNotExist:
-        return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
+        return response_handler(CONSTANTS.CODE_EMOTLY_NONEXISTENT)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return response_handler(200, emotly.serialize(), 'emotly')
@@ -126,9 +126,9 @@ def get_user_details_last_emotly(nickname, **kwargs):
         emotly = Emotly.objects(user=u.id).order_by("-created_at")\
             .only("user", "created_at", "mood", "geodata").first()
         if emotly is None:
-            return response_handler(404, CONSTANTS.EMOTLY_DOES_NOT_EXIST)
+            return response_handler(CONSTANTS.CODE_EMOTLY_NONEXISTENT)
     except DoesNotExist:
-        return response_handler(404, CONSTANTS.USER_DOES_NOT_EXIST)
+        return response_handler(CONSTANTS.CODE_USER_UNKNOW)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return response_handler(200, emotly.serialize(), 'emotly')

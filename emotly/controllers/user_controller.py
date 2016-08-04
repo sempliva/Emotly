@@ -54,14 +54,14 @@ def login():
             user = User.objects.get(nickname__iexact=data['user_id'])
     except DoesNotExist:
         # User does not exist.
-        return response_handler(404, CONSTANTS.AUTHENTICATION_ERROR)
+        return response_handler(CONSTANTS.CODE_USER_UNKNOW)
     except Exception:
         # No data sent by the client or there
         # was an error queryng the database.
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     if not user.confirmed_email:
-        # User email not confirmed yet.
-        return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
+        # User email not confirmed yet
+        return response_handler(CONSTANTS.CODE_USER_UNCONFIRMED)
     if User.verify_password(user, data['password'].encode('utf-8')):
         try:
             user.update(last_login=datetime.datetime.now())
@@ -70,7 +70,7 @@ def login():
             return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
         # Generate and send JWT
         return make_response(generate_jwt_token(user), 200)
-    return response_handler(403, CONSTANTS.UNAUTHORIZED)
+    return response_handler(CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
 
 @user_controller.route("/signup", methods=["GET", "POST"])
@@ -104,9 +104,9 @@ def signup_api():
         return response_handler(200,
                                 CONSTANTS.REGISTRATION_COMPLETED_CHECK_EMAIL)
     except ValidationError:
-        return response_handler(400, CONSTANTS.REGISTRATION_ERROR_INVALID_DATA)
+        return response_handler(CONSTANTS.CODE_USER_MISSING_REGISTRATION_DATA)
     except NotUniqueError:
-        return response_handler(400, CONSTANTS.REGISTRATION_ERROR_USER_EXISTS)
+        return response_handler(CONSTANTS.CODE_USER_ACCOUNT_ALREADY_EXISTS)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
 
@@ -166,7 +166,7 @@ def is_jwt_valid():
     try:
         return response_handler(200, verify_jwt_token(auth_token))
     except:
-        return response_handler(400, CONSTANTS.INVALID_JSON_DATA)
+        return response_handler(CONSTANTS.CODE_DATA_INVALUD_REQUEST)
 
 
 # This route is used to resend the confirmation email.
@@ -189,7 +189,7 @@ def resend_email_confirmation(**kwargs):
                 get(nickname__iexact=data['user_id'])
         # Check if user is confirmed, return 400 if it is already confirmed.
         if user.confirmed_email:
-            return response_handler(400, CONSTANTS.USER_ALREADY_CONFIRMED)
+            return response_handler(CONSTANTS.CODE_USER_ALREADY_CONFIRMED)
 
         secs = (datetime.datetime.now() -
                 user.confirmation_token.created_at).total_seconds()
@@ -197,14 +197,14 @@ def resend_email_confirmation(**kwargs):
         # Check if user requested token less then MINUTES_SINCE_LAST_EMAIL
         # minutes ago. Return 400 if the token has already been sent.
         if minutes < CONSTANTS.MINUTES_SINCE_LAST_EMAIL:
-            return response_handler(400,
-                                    CONSTANTS.CONFIRMATION_EMAIL_ALREADY_SENT)
+            return response_handler(CONSTANTS.
+                                    CODE_TOKEN_CONFIRMATION_ALREADY_SENT)
 
         user.update(confirmation_token__created_at=datetime.datetime.now())
         send_email_confirmation(user.email, user.confirmation_token.token)
     # If user does not exist return 404.
     except DoesNotExist:
-        return response_handler(404, CONSTANTS.AUTHENTICATION_ERROR)
+        return response_handler(CONSTANTS.CODE_USER_UNKNOW)
     except Exception:
         return response_handler(500, CONSTANTS.INTERNAL_SERVER_ERROR)
     return response_handler(200, CONSTANTS.CONFIRMATION_EMAIL_SENT)

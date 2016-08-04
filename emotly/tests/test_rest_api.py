@@ -75,18 +75,24 @@ class RESTAPITestCase(unittest.TestCase):
     def test_cannot_get_emotlies_unauthorized(self):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/emotlies/own',
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
     def test_cannot_get_emotly_unauthorized(self):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX + '/emotlies/show/1',
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
     def test_cannot_get_post_emotly_unauthorized(self):
         m = {'mood': 1}
         rv = self.app.post(CONSTANTS.REST_API_PREFIX + '/emotlies/new',
                            data=json.dumps(m), base_url='https://localhost')
-        self.assertEqual(rv.status_code, 403)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
 
     # Json data checks.
     def test_post_emotly_json_data_not_contains_mood(self):
