@@ -153,7 +153,9 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 400)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_TOKEN_CONFIRMATION_ALREADY_SENT)
 
     def test_cannot_resend_token_confirmation_user_email_not_exists(self):
         u = User(nickname='fake',
@@ -165,7 +167,8 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 404)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_USER_UNKNOW)
 
     def test_cannot_resend_token_confirmation_user_nickname_not_exists(self):
         u = User(nickname='fake',
@@ -177,7 +180,8 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 404)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_USER_UNKNOW)
 
     def test_cannot_resend_token_confirmation_user_already_confirmed(self):
         u = User(nickname='resendtoken',
@@ -191,7 +195,9 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='https://localhost')
-        self.assertEqual(rv.status_code, 400)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"],
+                         CONSTANTS.CODE_USER_ALREADY_CONFIRMED)
 
     def test_resend_token_confirmation_is_token_created_at_updated(self):
         u = User(nickname='resendtoken',
@@ -285,4 +291,5 @@ class TokenTestCase(unittest.TestCase):
         rv = self.app.get(CONSTANTS.REST_API_PREFIX +
                           '/resend_email_confirmation', data=json.dumps(data),
                           base_url='http://localhost')
-        self.assertIn(CONSTANTS.NOT_HTTPS_REQUEST.encode('utf-8'), rv.data)
+        data = json.loads(rv.data.decode("utf-8"))
+        self.assertEqual(data["error_code"], CONSTANTS.CODE_REQUEST_INSECURE)

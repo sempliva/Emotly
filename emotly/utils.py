@@ -146,9 +146,25 @@ def sign_jwt(header, payload):
 
 
 # App error and response handler.
-def response_handler(code, value, message=None):
+def response_handler(code=0, value=None, message=None):
     message = message or "message"
-    return make_response(jsonify({message: value}), code)
+    # If the given code is greater than 0 then it is an HTTP code.
+    if code > 0:
+        if value is None:
+            # TODO: Replace with assert?
+            raise ValueError("Error message is required if HTTP \
+                             code is specified.")
+        return make_response(jsonify({message: value}), code)
+    else:
+        # it is an Emotly specific code otherwhise.
+        try:
+            value = CONSTANTS.ERRORS_TABLE[code].message
+            http_code = CONSTANTS.ERRORS_TABLE[code].error_code
+        except:
+            # TODO: Replace with assert?
+            raise ValueError("Please specify a valid error_code.")
+        return make_response(jsonify({"error_code": code, message: value}),
+                             http_code)
 
 
 # Verify that a request has valid json data.
@@ -184,12 +200,12 @@ def require_token(api_method):
                     # Pass user as in the  kwargs to the original fn.
                     kwargs['user'] = user
                     return api_method(*args, **kwargs)
-                return response_handler(403, CONSTANTS.USER_NOT_CONFIRMED)
+                return response_handler(CONSTANTS.CODE_USER_UNCONFIRMED)
             # If does not exist return 404.
             except DoesNotExist:
-                return response_handler(404, CONSTANTS.AUTHENTICATION_ERROR)
+                return response_handler(CONSTANTS.CODE_USER_UNKNOW)
         # If the request has no user token or it is not valid 403.
-        return response_handler(403, CONSTANTS.UNAUTHORIZED)
+        return response_handler(CONSTANTS.CODE_REQUEST_UNAUTHORIZED)
     return check_api_key
 
 
@@ -202,7 +218,7 @@ def require_https(api_method):
         if should_override_security_restrictions(urlparse(request.url)):
             return api_method(*args, **kwargs)
         if not request.is_secure:
-            return response_handler(403, CONSTANTS.NOT_HTTPS_REQUEST)
+            return response_handler(CONSTANTS.CODE_REQUEST_INSECURE)
         return api_method(*args, **kwargs)
     return check_api_key
 

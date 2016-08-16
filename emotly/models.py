@@ -82,3 +82,9 @@ class Emotly(db.Document):
         if self.geodata:
             dictionary['coord'] = self.geodata.to_mongo().to_dict()
         return dictionary
+
+
+class JsonError:
+    def __init__(self, error_code, message):
+        self.error_code = error_code
+        self.message = message
